@@ -1,0 +1,48 @@
+=============
+IMAP accounts
+=============
+
+The `Account` class is an object-oriented representation of an IMAP account on
+a server.
+
+An account requires information about the server on which it is located and
+the user credentials to allow logging in:
+
+>>> from gocept.imapapi.account import Account
+>>> account = Account('localhost', 10143, 'test', 'bsdf')
+
+Note that the account object provides the IAccount interface:
+
+>>> from gocept.imapapi.interfaces import IAccount
+>>> IAccount.providedBy(account)
+True
+>>> account.host
+'localhost'
+>>> account.port
+10143
+>>> account.user
+'test'
+>>> account.password
+'bsdf'
+
+Listing messages
+================
+
+The INBOX of an account can be retrieved using the `get_messages` method:
+
+>>> account.get_messages()
+[]
+
+Failing logins
+==============
+
+If the connection can not be established, the account object will not be
+created:
+
+>>> account = Account('localhost', 10143, 'test', 'foo')
+Traceback (most recent call last):
+error: Authentication failed.
+
+>>> account = Account('localhost', 10144, 'test', 'bsdf')
+Traceback (most recent call last):
+error: (111, 'Connection refused')
