@@ -11,6 +11,7 @@ import zope.interface
 import Acquisition
 
 import gocept.imapapi.interfaces
+import gocept.imapapi.message
 
 
 class Account(Acquisition.Explicit):
@@ -35,5 +36,6 @@ class Account(Acquisition.Explicit):
             code, data = self.server.fetch(str(i), '(RFC822)')
             msg_data = data[0]
             msg_str = msg_data[1]
-            msgs.append(parser.parsestr(msg_str, True))
+            msg = parser.parsestr(msg_str, True)
+            msgs.append(gocept.imapapi.message.Message(msg).__of__(self))
         return msgs
