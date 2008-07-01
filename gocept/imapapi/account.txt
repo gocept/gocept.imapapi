@@ -25,6 +25,7 @@ True
 >>> account.password
 'bsdf'
 
+
 Listing messages
 ================
 
@@ -32,6 +33,7 @@ The INBOX of an account can be retrieved using the `get_messages` method:
 
 >>> account.get_messages()
 []
+
 
 Failing logins
 ==============
