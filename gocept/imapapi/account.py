@@ -8,10 +8,12 @@ import email.Parser
 
 import zope.interface
 
+import Acquisition
+
 import gocept.imapapi.interfaces
 
 
-class Account(object):
+class Account(Acquisition.Explicit):
 
     zope.interface.implements(gocept.imapapi.interfaces.IAccount)
 
