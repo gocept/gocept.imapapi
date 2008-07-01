@@ -3,6 +3,15 @@
 # $Id$
 
 import zope.interface
+import zope.interface.common.mapping
+
+
+class IMessage(zope.interface.common.mapping.IMapping):
+    """A message.
+
+    Provides a mapping of RfC822-style headers.
+
+    """
 
 
 class IAccount(zope.interface.Interface):
