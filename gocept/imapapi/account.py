@@ -44,10 +44,3 @@ class Account(Acquisition.Explicit):
             name = name[0]
             result.append(gocept.imapapi.folder.Folder(name, self, sep))
         return result
-
-    def get_messages(self):
-        """Show messages of the INBOX."""
-        # XXX Backwards compatibility API to allow others to continue working.
-        for folder in self.folders:
-            if folder.name == 'INBOX':
-                return folder.messages
