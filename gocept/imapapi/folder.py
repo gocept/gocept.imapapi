@@ -78,7 +78,7 @@ class Folder(Acquisition.Explicit):
         msgs = []
         parser = email.Parser.Parser()
         for i in xrange(1, count+1):
-            code, data = self.server.fetch(str(i), '(RFC822)')
+            code, data = self.server.fetch(str(i), '(RFC822.HEADER)')
             msg_data = data[0]
             msg_str = msg_data[1]
             msg = parser.parsestr(msg_str, True)

@@ -14,6 +14,7 @@ import gocept.imapapi.interfaces
 import gocept.imapapi.message
 import gocept.imapapi.folder
 import gocept.imapapi.parser
+import gocept.imapapi.imap
 
 
 class Account(Acquisition.Explicit):
@@ -26,7 +27,7 @@ class Account(Acquisition.Explicit):
         self.user = user
         self.password = password
 
-        self.server = imaplib.IMAP4(host, port)
+        self.server = gocept.imapapi.imap.IMAPConnection(host, port)
         self.server.login(user, password)
 
     @property
