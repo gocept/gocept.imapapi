@@ -12,6 +12,8 @@ import Acquisition
 
 import gocept.imapapi.interfaces
 import gocept.imapapi.message
+import gocept.imapapi.folder
+import gocept.imapapi.parser
 
 
 class Account(Acquisition.Explicit):
@@ -27,15 +29,25 @@ class Account(Acquisition.Explicit):
         self.server = imaplib.IMAP4(host, port)
         self.server.login(user, password)
 
+    @property
+    def folders(self):
+        """The folders in this account."""
+        result = []
+        code, data = self.server.list()
+        assert code == 'OK'
+        for response in data:
+            flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
+            name = name.split(sep)
+            if len(name) != 1:
+                # Ignore all non-root folders
+                continue
+            name = name[0]
+            result.append(gocept.imapapi.folder.Folder(name, self, sep))
+        return result
+
     def get_messages(self):
-        code, data = self.server.select('INBOX')
-        count = int(data[0])
-        msgs = []
-        parser = email.Parser.Parser()
-        for i in xrange(1, count+1):
-            code, data = self.server.fetch(str(i), '(RFC822)')
-            msg_data = data[0]
-            msg_str = msg_data[1]
-            msg = parser.parsestr(msg_str, True)
-            msgs.append(gocept.imapapi.message.Message(msg).__of__(self))
-        return msgs
+        """Show messages of the INBOX."""
+        # XXX Backwards compatibility API to allow others to continue working.
+        for folder in self.folders:
+            if folder.name == 'INBOX':
+                return folder.messages
