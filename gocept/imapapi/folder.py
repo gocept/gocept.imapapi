@@ -69,17 +69,34 @@ class Folder(Acquisition.Explicit):
                 name, self, sep))
         return result
 
-    def messages(self):
+    def messages(self, name=None):
         code, data = self.server().select(self.path())
         count = int(data[0])
-        code, data = self.server().status(self.path(), "(UIDVALIDITY)")
-        # XXX The UID validity value should be stores on the folder. It must
+
+        # XXX The UID validity value should be stored on the folder. It must
         # be valid throughout a session.
+        code, data = self.server().status(self.path(), "(UIDVALIDITY)")
         uidvalidity = gocept.imapapi.parser.uidvalidity(data[0])
+
+        # Step 1: Fetch by various criteria
+        fetched_msgs = []
+        if name is not None:
+            # Variant 1: Fetch by UID
+            validity, uid = name.split('-')
+            if int(validity) == uidvalidity:
+                code, data = self.server().uid('FETCH', '%s' % uid, '(UID RFC822.HEADER)')
+                fetched_msgs.append(data)
+        else:
+            # Variant 2: Fetch by sequence number
+            code, data = self.server().status(self.path(), "(UIDVALIDITY)")
+            for i in xrange(1, count+1):
+                code, data = self.server().fetch(str(i), '(UID RFC822.HEADER)')
+                fetched_msgs.append(data)
+
+        # Step 2: Process fetched data
         msgs = []
         parser = email.Parser.Parser()
-        for i in xrange(1, count+1):
-            code, data = self.server().fetch(str(i), '(UID RFC822.HEADER)')
+        for data in fetched_msgs:
             msg_data = data[0]
             uid = gocept.imapapi.parser.message_uid_other(msg_data[0])
             name = '%s-%s' % (uidvalidity, uid)
