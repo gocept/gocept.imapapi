@@ -8,13 +8,11 @@ import email.Parser
 
 import zope.interface
 
-import Acquisition
-
 import gocept.imapapi.interfaces
 import gocept.imapapi.message
 
 
-class Folder(Acquisition.Explicit):
+class Folder(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IFolder)
 
@@ -103,5 +101,5 @@ class Folder(Acquisition.Explicit):
             msg_str = msg_data[1]
             msg = parser.parsestr(msg_str, True)
             msgs.append(gocept.imapapi.message.Message(
-                name, self, msg).__of__(self))
+                name, self, msg))
         return msgs

@@ -8,8 +8,6 @@ import email.Parser
 
 import zope.interface
 
-import Acquisition
-
 import gocept.imapapi.interfaces
 import gocept.imapapi.message
 import gocept.imapapi.folder
@@ -17,7 +15,7 @@ import gocept.imapapi.parser
 import gocept.imapapi.imap
 
 
-class Account(Acquisition.Explicit):
+class Account(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IAccount)
 
