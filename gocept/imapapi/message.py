@@ -3,9 +3,9 @@
 # $Id$
 
 
-import zope.interface
-
+import email.Header
 import gocept.imapapi.interfaces
+import zope.interface
 
 
 class Message(dict):
@@ -18,3 +18,14 @@ class Message(dict):
         super(Message, self).__init__(headers)
         self.name = name
         self.parent = parent
+
+    def __getitem__(self, key):
+        result = u''
+        value = super(Message, self).__getitem__(key)
+        decoded = email.Header.decode_header(value)
+        for text, charset in decoded:
+            if charset is None:
+                result += text.decode('ascii', 'ignore')
+            else:
+                result += text.decode(charset, 'ignore')
+        return result
