@@ -28,3 +28,23 @@ def mailbox_list(line):
     match = mailbox_list_re.match(line)
     groups = match.groupdict()
     return (groups['flags'], groups['sep'], groups['name'])
+
+
+uidvalidity_re = re.compile(r'^".*?" \(UIDVALIDITY (?P<uidvalidity>[0-9]+)\)$')
+
+
+def uidvalidity(line):
+    """Parse an IMAP `status` response to a UIDVALIDITY query.
+    """
+    match = uidvalidity_re.match(line)
+    return int(match.groupdict()['uidvalidity'])
+
+
+message_uid_other_re = re.compile(r'^[0-9]+ \(UID (?P<uid>[0-9]+)')
+
+
+def message_uid_other(line):
+    """Parse an IMAP `fetch` response asking for a UID.
+    """
+    match = message_uid_other_re.match(line)
+    return int(match.groupdict()['uid'])

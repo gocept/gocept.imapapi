@@ -72,12 +72,19 @@ class Folder(Acquisition.Explicit):
     def messages(self):
         code, data = self.server().select(self.path())
         count = int(data[0])
+        code, data = self.server().status(self.path(), "(UIDVALIDITY)")
+        # XXX The UID validity value should be stores on the folder. It must
+        # be valid throughout a session.
+        uidvalidity = gocept.imapapi.parser.uidvalidity(data[0])
         msgs = []
         parser = email.Parser.Parser()
         for i in xrange(1, count+1):
-            code, data = self.server().fetch(str(i), '(RFC822.HEADER)')
+            code, data = self.server().fetch(str(i), '(UID RFC822.HEADER)')
             msg_data = data[0]
+            uid = gocept.imapapi.parser.message_uid_other(msg_data[0])
+            name = '%s-%s' % (uidvalidity, uid)
             msg_str = msg_data[1]
             msg = parser.parsestr(msg_str, True)
-            msgs.append(gocept.imapapi.message.Message(msg).__of__(self))
+            msgs.append(gocept.imapapi.message.Message(
+                name, self, msg).__of__(self))
         return msgs
