@@ -7,14 +7,14 @@ folders:
 
 >>> from gocept.imapapi.account import Account
 >>> account = Account('localhost', 10143, 'test', 'bsdf')
->>> account.folders
+>>> account.folders()
 [<gocept.imapapi.folder.Folder object 'INBOX' at 0x...>,
  <gocept.imapapi.folder.Folder object 'Bar' at 0x...>]
 
 Each folder in turn provides access to its direct sub-folders:
 
->>> INBOX = account.folders[0]
->>> INBOX.folders
+>>> INBOX = account.folders()[0]
+>>> INBOX.folders()
 [<gocept.imapapi.folder.Folder object 'Baz' at 0x...>]
 
 A folder also knows about its name, path, separator, and depth in the
@@ -22,21 +22,21 @@ hierarchy:
 
 >>> INBOX.name
 'INBOX'
->>> INBOX.path
+>>> INBOX.path()
 'INBOX'
->>> INBOX.separator
+>>> INBOX.separator()
 '/'
->>> INBOX.depth
+>>> INBOX.depth()
 1
 
->>> baz = INBOX.folders[0]
+>>> baz = INBOX.folders()[0]
 >>> baz.name
 'Baz'
->>> baz.path
+>>> baz.path()
 'INBOX/Baz'
->>> baz.separator
+>>> baz.separator()
 '/'
->>> baz.depth
+>>> baz.depth()
 2
 
 
@@ -45,5 +45,5 @@ Retrieving messages
 
 The messages of a folder can be retrieved using the `messages` collection:
 
->>> INBOX.messages
+>>> INBOX.messages()
 [{'From': 'test@localhost', 'Subject': 'Foo'}]

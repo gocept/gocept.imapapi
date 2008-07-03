@@ -30,7 +30,6 @@ class Account(Acquisition.Explicit):
         self.server = gocept.imapapi.imap.IMAPConnection(host, port)
         self.server.login(user, password)
 
-    @property
     def folders(self):
         """The folders in this account."""
         result = []

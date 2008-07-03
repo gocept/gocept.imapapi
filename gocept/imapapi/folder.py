@@ -27,43 +27,41 @@ class Folder(Acquisition.Explicit):
         repr = super(Folder, self).__repr__()
         return repr.replace('object', "object '%s'" % self.name)
 
-    @property
     def server(self):
-        return self.parent.server
+        if callable(self.parent.server):
+            return self.parent.server()
+        else:
+            return self.parent.server
 
-    @property
     def depth(self):
         if gocept.imapapi.interfaces.IAccount.providedBy(self.parent):
             return 1
         else:
-            return self.parent.depth + 1
+            return self.parent.depth() + 1
 
-    @property
     def separator(self):
         # RFC3501 requires to always use the same separator as given by the
         # top-level node.
-        if self.depth == 1:
+        if self.depth() == 1:
             return self._separator
         else:
-            return self.parent.separator
+            return self.parent.separator()
 
-    @property
     def path(self):
-        if self.depth == 1:
+        if self.depth() == 1:
             return self.name
         else:
-            return self.parent.path + self.separator + self.name
+            return self.parent.path() + self.separator() + self.name
 
-    @property
     def folders(self):
         """The subfolders in this folder."""
         result = []
-        code, data = self.server.list(self.path)
+        code, data = self.server().list(self.path())
         assert code == 'OK'
         for response in data:
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
             name = name.split(sep)
-            if len(name) != self.depth + 1:
+            if len(name) != self.depth() + 1:
                 # Ignore all folders that are not direct children.
                 continue
             name = name[-1]
@@ -71,14 +69,13 @@ class Folder(Acquisition.Explicit):
                 name, self, sep))
         return result
 
-    @property
     def messages(self):
-        code, data = self.server.select(self.path)
+        code, data = self.server().select(self.path())
         count = int(data[0])
         msgs = []
         parser = email.Parser.Parser()
         for i in xrange(1, count+1):
-            code, data = self.server.fetch(str(i), '(RFC822.HEADER)')
+            code, data = self.server().fetch(str(i), '(RFC822.HEADER)')
             msg_data = data[0]
             msg_str = msg_data[1]
             msg = parser.parsestr(msg_str, True)
