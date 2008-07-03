@@ -30,7 +30,7 @@ def mailbox_list(line):
     return (groups['flags'], groups['sep'], groups['name'])
 
 
-uidvalidity_re = re.compile(r'^".*?" \(UIDVALIDITY (?P<uidvalidity>[0-9]+)\)$')
+uidvalidity_re = re.compile(r'.*?\(UIDVALIDITY (?P<uidvalidity>[0-9]+)\)$')
 
 
 def uidvalidity(line):
