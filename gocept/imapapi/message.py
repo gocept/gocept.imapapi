@@ -19,6 +19,13 @@ class Message(dict):
         self.name = name
         self.parent = parent
 
+    def server(self):
+        return self.parent.server()
+
+    @property
+    def UID(self):
+        return self.name.split('-')[1]
+
     def __getitem__(self, key):
         result = u''
         value = super(Message, self).__getitem__(key)
@@ -29,3 +36,15 @@ class Message(dict):
             else:
                 result += text.decode(charset, 'ignore')
         return result
+
+    def text(self):
+        code, data = self.server().select(self.parent.path())
+        code, data = self.server().uid('FETCH', '%s' % self.UID, '(RFC822.TEXT)')
+        assert code == 'OK'
+        return data[0][1]
+
+    def raw(self):
+        code, data = self.server().select(self.parent.path())
+        code, data = self.server().uid('FETCH', '%s' % self.UID, '(BODY.PEEK[])')
+        assert code == 'OK'
+        return data[0][1]
