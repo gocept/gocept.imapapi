@@ -9,7 +9,8 @@ import imaplib
 
 def callable_proxy(name, callable):
     def proxy(*args, **kw):
-        print "IMAP call", name, args, kw
+        # XXX next time we need this: log to zope's logger mechanism on debug level
+        #print "IMAP call", name, args, kw
         return callable(*args, **kw)
     return proxy
 
