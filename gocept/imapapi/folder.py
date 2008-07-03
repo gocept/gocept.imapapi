@@ -95,11 +95,9 @@ class Folder(object):
         msgs = []
         parser = email.Parser.Parser()
         for data in fetched_msgs:
-            msg_data = data[0]
-            uid = gocept.imapapi.parser.message_uid_other(msg_data[0])
+            uid, headers = gocept.imapapi.parser.message_uid_headers(data)
             name = '%s-%s' % (uidvalidity, uid)
-            msg_str = msg_data[1]
-            msg = parser.parsestr(msg_str, True)
+            msg = parser.parsestr(headers, True)
             msgs.append(gocept.imapapi.message.Message(
                 name, self, msg))
         return msgs

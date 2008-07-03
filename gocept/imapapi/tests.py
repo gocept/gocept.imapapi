@@ -51,12 +51,16 @@ def setUp(self):
     assert status == 'BYE'
 
 
+optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(doctest.DocFileSuite(
         'account.txt',
         'folder.txt',
         setUp=setUp,
-        optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS))
-    suite.addTest(doctest.DocTestSuite('gocept.imapapi.parser'))
+        optionflags=optionflags))
+    suite.addTest(doctest.DocTestSuite(
+        'gocept.imapapi.parser',
+        optionflags=optionflags))
     return suite
