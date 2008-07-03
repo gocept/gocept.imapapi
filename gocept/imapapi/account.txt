@@ -37,7 +37,7 @@ An account contains folders, but does not contain messages by itself:
 
 >>> account.messages
 Traceback (most recent call last):
-AttributeError: messages
+AttributeError: 'Account' object has no attribute 'messages'
 
 
 Failing logins

@@ -5,12 +5,10 @@
 
 import zope.interface
 
-import Acquisition
-
 import gocept.imapapi.interfaces
 
 
-class Message(Acquisition.Explicit, dict):
+class Message(dict):
 
     zope.interface.implements(gocept.imapapi.interfaces.IMessage)
 
