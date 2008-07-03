@@ -6,7 +6,18 @@ import zope.interface
 import zope.interface.common.mapping
 
 
-class IMessage(zope.interface.common.mapping.IMapping):
+class IAccountContent(zope.interface.Interface):
+    """Something that resides in the object hierarchy of an account.
+
+    """
+
+    name = zope.interface.Attribute('The name.')
+
+    parent = zope.interface.Attribute('The parent node in the hierarchy.')
+
+
+class IMessage(zope.interface.common.mapping.IMapping,
+               IAccountContent):
     """A message.
 
     Provides a mapping of RfC822-style headers.
@@ -42,7 +53,7 @@ class IAccount(IFolderContainer):
     """
 
 
-class IFolder(IFolderContainer, IMessageContainer):
+class IFolder(IFolderContainer, IMessageContainer, IAccountContent):
     """An IMAP folder.
 
     Contains messages and other folders.
