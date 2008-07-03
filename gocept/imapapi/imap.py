@@ -7,6 +7,13 @@
 import imaplib
 
 
+def callable_proxy(name, callable):
+    def proxy(*args, **kw):
+        print "IMAP call", name, args, kw
+        return callable(*args, **kw)
+    return proxy
+
+
 class IMAPConnection(object):
     """A facade to the imaplib server connection which provides caching and
     exception handling.
@@ -17,4 +24,7 @@ class IMAPConnection(object):
         self.server = imaplib.IMAP4(host, port)
 
     def __getattr__(self, name):
-        return getattr(self.server, name)
+        attr = getattr(self.server, name)
+        if callable(attr):
+            attr = callable_proxy(name, attr)
+        return attr
