@@ -32,6 +32,45 @@ class MessageHeaders(UserDict.DictMixin):
         return self.data.keys()
 
 
+class BodyPart(object):
+
+    def __init__(self, data, parent):
+        self._data = data
+        self._parent = parent
+
+    @property
+    def server(self):
+        return self._parent.server
+
+    @property
+    def message(self):
+        if gocept.imapapi.interfaces.IMessage.providedBy(self._parent):
+            return self._parent
+        return self._parent.message
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    @property
+    def parts(self):
+        parts = []
+        for part in self._data['parts']:
+            parts.append(BodyPart(part, self))
+        return parts
+
+    def fetch(self):
+        code, data = self.server.select(self.message.parent.path)
+        code, data = self.server.uid('FETCH', '%s' % self.message.UID,
+                                     '(BODY[%s])' % self['partnumber'])
+        # XXX Performance and memory optimisations here, please.
+        data = data[0][1]
+        try:
+            data = data.decode(self['encoding'])
+        except LookupError:
+            pass
+        return data
+
+
 class Message(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IMessage)
@@ -69,3 +108,12 @@ class Message(object):
         code, data = self.server.uid('FETCH', '%s' % self.UID, '(BODY.PEEK[])')
         assert code == 'OK'
         return data[0][1]
+
+    @property
+    def body(self):
+        code, data = self.server.select(self.parent.path)
+        code, data = self.server.uid('FETCH', '%s' % self.UID,
+                                     '(BODYSTRUCTURE)')
+        assert code == 'OK'
+        structure = gocept.imapapi.parser.message_structure(data[0])
+        return BodyPart(structure, self)
