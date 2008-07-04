@@ -41,4 +41,5 @@ class Account(object):
                 continue
             name = name[0]
             result.append(gocept.imapapi.folder.Folder(name, self, sep))
+        result.sort(key=lambda folder:folder.name)
         return result

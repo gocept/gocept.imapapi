@@ -1,0 +1,70 @@
+=============
+IMAP messages
+=============
+
+IMAP messages provide a convenient way to access information from a mail
+message. They are roughly based on the structures that Python's email module
+provides but are optimized to avoid loading too much data at once and to
+provide very convenient access.
+
+Messages are retrieved from folders which are IMessageContainers:
+
+>>> from gocept.imapapi.account import Account
+>>> account = Account('localhost', 10143, 'test', 'bsdf')
+>>> INBOX = account.folders()[1]
+>>> INBOX.name
+'INBOX'
+>>> from gocept.imapapi.interfaces import IMessageContainer
+>>> IMessageContainer.providedBy(INBOX)
+True
+
+Note that the account itself is not a message container. It only contains
+folders, not messages:
+
+>>> IMessageContainer.providedBy(account)
+False
+
+Let's get a message now:
+
+>>> message = INBOX.messages()[0]
+>>> message
+<gocept.imapapi.message.Message object 'INBOX/...' at 0x...>
+
+Headers
+=======
+
+Headers can be accessed using the dictionary API on the message. Headers are
+decoded into unicode automatically:
+
+>>> message.headers['X-IMAPAPI-Test']
+u'1'
+>>> message.headers['X-Correct-Encoding-Header']
+u'Text \xfc'
+
+Invalid encodings will end in unicode strings anyway but with replaced
+characters as a hint:
+
+>>> message.headers['X-Wrong-Encoding-Header']
+u'Text \ufffd\ufffd'
+>>> message.headers['X-No-Encoding-Header']
+u'Text \ufffd or not'
+
+Raw
+===
+
+The message itself can be accessed in the raw form including all headers,
+parts etc. This does not perform any mangling, decoding or other function that
+would change the representation from what is stored on the server:
+
+>>> message.raw
+'From: test@localhost\r\nX-IMAPAPI-Test: 1\r\nX-No-Encoding-Header: Text \xfc or not\r\nX-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\r\nX-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\r\nSubject: Mail 1\r\n\r\nEverything is ok!'
+
+
+Plain text
+===========
+
+The message body itself can also be retrieved in a plain text version (which
+might include encoded mime parts):
+
+>>> print message.text
+Everything is ok!

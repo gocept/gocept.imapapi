@@ -16,13 +16,22 @@ class IAccountContent(zope.interface.Interface):
     parent = zope.interface.Attribute('The parent node in the hierarchy.')
 
 
-class IMessage(zope.interface.common.mapping.IMapping,
-               IAccountContent):
+class IMessage(IAccountContent):
     """A message.
 
     Provides a mapping of RfC822-style headers.
 
     """
+
+    headers = zope.interface.Attribute(
+        'A dictionary-like object providing access to the headers.')
+
+    raw = zope.interface.Attribute(
+        'The raw text content of the whole message. '
+        'Includes headers and body. No encoding conversions are applied. ')
+
+    text = zope.interface.Attribute(
+        'The body of the message as text/plain.')
 
 
 class IFolderContainer(zope.interface.Interface):
@@ -32,7 +41,12 @@ class IFolderContainer(zope.interface.Interface):
 
     """
 
-    folders = zope.interface.Attribute('The folders in this account.')
+    def folders():
+        """The folders in this account.
+
+        Sorted alphabetically.
+
+        """
 
 
 class IMessageContainer(zope.interface.Interface):
@@ -42,7 +56,14 @@ class IMessageContainer(zope.interface.Interface):
 
     """
 
-    messages = zope.interface.Attribute('The messages in this folder.')
+    def messages(name=None):
+        """Retrieve a list of messages.
+
+        If name is given, then only the message with the name is returned.
+
+        Otherwise all messages are retrieved.
+
+        """
 
 
 class IAccount(IFolderContainer):
