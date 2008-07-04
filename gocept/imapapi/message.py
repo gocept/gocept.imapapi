@@ -59,15 +59,25 @@ class BodyPart(object):
         return parts
 
     def fetch(self):
+        """Fetch the body part's content."""
+        # XXX This is icky. This means that on multipart messages we will
+        # fetch everything but on non-multipart messages we only fetch the
+        # first element. I also tried creating a fake multi-part body but
+        # that ends up in an even worse abstraction once you hand it out to
+        # the json encoding code.
+        if (not self['content_type'].startswith('multipart/') and
+            self['partnumber'] == ''):
+            # RFC 3501: The part number of a single non-multipart message is
+            # always 1.
+            partnumber = '1'
+        else:
+            partnumber = self['partnumber']
+
         code, data = self.server.select(self.message.parent.path)
         code, data = self.server.uid('FETCH', '%s' % self.message.UID,
-                                     '(BODY[%s])' % self['partnumber'])
+                                     '(BODY[%s])' % partnumber)
         # XXX Performance and memory optimisations here, please.
         data = data[0][1]
-        try:
-            data = data.decode(self['encoding'])
-        except LookupError:
-            pass
         return data
 
 
