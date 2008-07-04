@@ -44,10 +44,12 @@ def setUp(self):
                'X-No-Encoding-Header: Text \xFC or not\n'
                'X-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\n'
                'X-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\n'
+               'Date: 02-Jul-2008 03:05:00 +0200\n'
                'Subject: Mail 1\n\nEverything is ok!')
     callIMAP(server, 'append', 'INBOX', '', '"02-Jul-2008 03:05:00 +0200"',
              message)
     message = ('From: test@localhost\nX-IMAPAPI-Test: 2\n'
+               'Date: 02-Jul-2008 03:06:00 +0200\n'
                'Subject: Mail 2\n\nEverything is ok!')
     callIMAP(server, 'append', 'INBOX', '', '"02-Jul-2008 03:06:00 +0200"',
              message)
