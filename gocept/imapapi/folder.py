@@ -23,57 +23,59 @@ class Folder(object):
 
     def __repr__(self):
         repr = super(Folder, self).__repr__()
-        return repr.replace('object', "object '%s'" % self.name)
+        return repr.replace('object', "object '%s'" % self.path)
 
+    @property
     def server(self):
-        if callable(self.parent.server):
-            return self.parent.server()
-        else:
-            return self.parent.server
+        return self.parent.server
 
+    @property
     def depth(self):
         if gocept.imapapi.interfaces.IAccount.providedBy(self.parent):
             return 1
         else:
-            return self.parent.depth() + 1
+            return self.parent.depth + 1
 
+    @property
     def separator(self):
         # RFC3501 requires to always use the same separator as given by the
         # top-level node.
-        if self.depth() == 1:
+        if self.depth == 1:
             return self._separator
         else:
-            return self.parent.separator()
+            return self.parent.separator
 
+    @property
     def path(self):
-        if self.depth() == 1:
+        if self.depth == 1:
             return self.name
         else:
-            return self.parent.path() + self.separator() + self.name
+            return self.parent.path + self.separator + self.name
 
     def folders(self):
         """The subfolders in this folder."""
         result = []
-        code, data = self.server().list(self.path())
+        code, data = self.server.list(self.path)
         assert code == 'OK'
         for response in data:
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
             name = name.split(sep)
-            if len(name) != self.depth() + 1:
+            if len(name) != self.depth + 1:
                 # Ignore all folders that are not direct children.
                 continue
             name = name[-1]
             result.append(gocept.imapapi.folder.Folder(
                 name, self, sep))
+        result.sort(key=lambda folder:folder.name)
         return result
 
     def messages(self, name=None):
-        code, data = self.server().select(self.path())
+        code, data = self.server.select(self.path)
         count = int(data[0])
 
         # XXX The UID validity value should be stored on the folder. It must
         # be valid throughout a session.
-        code, data = self.server().status(self.path(), "(UIDVALIDITY)")
+        code, data = self.server.status(self.path, "(UIDVALIDITY)")
         uidvalidity = gocept.imapapi.parser.uidvalidity(data[0])
 
         # Step 1: Fetch by various criteria
@@ -82,13 +84,13 @@ class Folder(object):
             # Variant 1: Fetch by UID
             validity, uid = name.split('-')
             if int(validity) == uidvalidity:
-                code, data = self.server().uid('FETCH', '%s' % uid, '(UID RFC822.HEADER)')
+                code, data = self.server.uid('FETCH', '%s' % uid, '(UID RFC822.HEADER)')
                 fetched_msgs.append(data)
         else:
             # Variant 2: Fetch by sequence number
-            code, data = self.server().status(self.path(), "(UIDVALIDITY)")
+            code, data = self.server.status(self.path, "(UIDVALIDITY)")
             for i in xrange(1, count+1):
-                code, data = self.server().fetch(str(i), '(UID RFC822.HEADER)')
+                code, data = self.server.fetch(str(i), '(UID RFC822.HEADER)')
                 fetched_msgs.append(data)
 
         # Step 2: Process fetched data

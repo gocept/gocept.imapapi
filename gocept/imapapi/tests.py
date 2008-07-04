@@ -40,8 +40,16 @@ def setUp(self):
     callIMAP(server, 'expunge')
 
     # Create a message in the INBOX
-    message = 'From: test@localhost\nSubject: Foo\n\nEverything is ok!'
+    message = ('From: test@localhost\nX-IMAPAPI-Test: 1\n'
+               'X-No-Encoding-Header: Text \xFC or not\n'
+               'X-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\n'
+               'X-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\n'
+               'Subject: Mail 1\n\nEverything is ok!')
     callIMAP(server, 'append', 'INBOX', '', '"02-Jul-2008 03:05:00 +0200"',
+             message)
+    message = ('From: test@localhost\nX-IMAPAPI-Test: 2\n'
+               'Subject: Mail 2\n\nEverything is ok!')
+    callIMAP(server, 'append', 'INBOX', '', '"02-Jul-2008 03:06:00 +0200"',
              message)
 
     # Create the standard hierarchy for tests
@@ -51,13 +59,15 @@ def setUp(self):
     assert status == 'BYE'
 
 
-optionflags = doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS
+optionflags = (doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS |
+               doctest.REPORT_NDIFF)
 
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(doctest.DocFileSuite(
         'account.txt',
         'folder.txt',
+        'message.txt',
         setUp=setUp,
         optionflags=optionflags))
     suite.addTest(doctest.DocTestSuite(

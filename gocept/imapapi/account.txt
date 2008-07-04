@@ -32,8 +32,8 @@ Retrieving folder structure
 An account contains folders, but does not contain messages by itself:
 
 >>> account.folders()
-[<gocept.imapapi.folder.Folder object 'INBOX' at 0x...>,
- <gocept.imapapi.folder.Folder object 'Bar' at 0x...>]
+[<gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
+ <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>]
 
 >>> account.messages
 Traceback (most recent call last):
