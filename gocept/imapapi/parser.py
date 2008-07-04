@@ -107,7 +107,8 @@ def message_structure(data):
     tokens = tokenize(data)
     assert len(tokens) == 2
     structure = tokens[1][3]
-    return _parse_structure(structure, '')
+    structure = _parse_structure(structure, '')
+    return structure
 
 
 ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){ %*"\]']
