@@ -16,6 +16,7 @@ setup(
     zip_safe=False,
     license='ZPL 2.1',
     namespace_packages=['gocept'],
+    install_requires=['setuptools'],
     entry_points="""
     [zc.buildout]
     env = gocept.imapapi.recipe:Environment
