@@ -59,6 +59,56 @@ def message_uid_headers(data):
     headers = tokens[1][3]
     return uid, headers
 
+def _parse_structure(structure, path): 
+    if isinstance(structure[0], str):
+        return _parse_nonmultipart(structure, path)
+    else:
+        return _parse_multipart(structure, path)
+
+def _parse_multipart(element, path):
+    data = {}
+    data['parts'] = []
+
+    if path:
+        sub_path_prefix = path + '.'
+    else:
+        sub_path_prefix = path
+
+    sub_number = 0
+    while True:
+        subelement = element.pop(0)
+        if isinstance(subelement, str):
+            # End of structure list.
+            break
+        sub_number += 1
+        data['parts'].append(_parse_structure(subelement, sub_path_prefix + str(sub_number)))
+
+    data['content_type'] = 'multipart/%s' % subelement.lower()
+    data['partnumber'] = path
+    return data
+
+def _parse_nonmultipart(element, path):
+    data = {}
+    data['content_type'] = '%s/%s' % (element[0].lower(), element[1].lower())
+    data['parameters'] = {}
+    if isinstance(element[2], list):
+        while element[2]:
+            data['parameters'][element[2].pop().lower()] = element[2].pop()
+    data['id'] = element[3]
+    data['description'] = element[4]
+    data['encoding'] = element[5].lower()
+    data['size'] = int(element[6].value)
+    data['partnumber'] = path
+    return data
+
+def message_structure(data):
+    """Parse an IMAP `fetch` response for BODYSTRUCTURE.
+    """
+    tokens = tokenize(data)
+    assert len(tokens) == 2
+    structure = tokens[1][3]
+    return _parse_structure(structure, '')
+
 
 ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){ %*"\]']
 
@@ -326,8 +376,10 @@ def tokenize_recursive(data):
             data.next()
         elif c in (')', None):
             break
+        elif c == '(':
+            continue
         else:
-            raise TokenizeError('Syntax error', data)
+            raise TokenizeError('Syntax error %s' % c, data)
 
 
 def tokenize(data):
@@ -352,6 +404,11 @@ def tokenize(data):
     [[<IMAP atom UID>, <IMAP atom 17>, <IMAP atom RFC822>,
      'From: foo@example.com\nSubject: Test\n\nThis is a test mail.\n',
      <IMAP atom FLAGS>, [<IMAP flag \Deleted>]]]
+
+    >>> tokenize(r'(BODYSTRUCTURE ("TEXT" "PLAIN")("TEXT" "HTML"))')
+    [[<IMAP atom BODYSTRUCTURE>, ['TEXT', 'PLAIN'], ['TEXT', 'HTML']]]
+    >>> tokenize(r'(BODYSTRUCTURE ("TEXT" "PLAIN") ("TEXT" "HTML"))')
+    [[<IMAP atom BODYSTRUCTURE>, ['TEXT', 'PLAIN'], ['TEXT', 'HTML']]]
 
     """
     data = LookAheadStringIter(data)

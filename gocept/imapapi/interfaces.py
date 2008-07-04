@@ -82,3 +82,11 @@ class IFolder(IFolderContainer, IMessageContainer, IAccountContent):
     """
 
 
+class IBodyPart(zope.interface.Interface):
+    """A part of a message body.
+
+    Can be multipart or non-multipart.
+
+    XXX complete interface
+
+    """
