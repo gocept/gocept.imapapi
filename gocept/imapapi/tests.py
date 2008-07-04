@@ -13,7 +13,7 @@ import gocept.imapapi.parser
 
 def callIMAP(server, function, *args, **kw):
     status, data = getattr(server, function)(*args, **kw)
-    assert status == 'OK'
+    assert status == 'OK', (function, args, kw, status)
     return data
 
 
