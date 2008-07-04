@@ -3,17 +3,23 @@
 # $Id$
 
 
+import UserDict
 import email.Header
 import gocept.imapapi.interfaces
 import zope.interface
 
 
-class MessageHeaders(dict):
+class MessageHeaders(UserDict.DictMixin):
     """A dictionary that performs RFC 2822 header decoding on access."""
+
+    def __init__(self, data):
+        self.data = data
 
     def __getitem__(self, key):
         result = u''
-        value = super(MessageHeaders, self).__getitem__(key)
+        if not key in self.data:
+            raise KeyError(key)
+        value = self.data[key]
         decoded = email.Header.decode_header(value)
         for text, charset in decoded:
             if charset is None:
@@ -21,6 +27,9 @@ class MessageHeaders(dict):
             else:
                 result += text.decode(charset, 'replace')
         return result
+
+    def keys(self):
+        return self.data.keys()
 
 
 class Message(object):
