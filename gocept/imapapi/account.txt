@@ -39,6 +39,13 @@ An account contains folders, but does not contain messages by itself:
 Traceback (most recent call last):
 AttributeError: 'Account' object has no attribute 'messages'
 
+Individual folders can be retrieved by specifying their name:
+
+>>> account.folders(name='INBOX')
+[<gocept.imapapi.folder.Folder object 'INBOX' at 0x...>]
+
+>>> account.folders(name='nofolder')
+[]
 
 Failing logins
 ==============

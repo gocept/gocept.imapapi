@@ -41,10 +41,13 @@ class IFolderContainer(zope.interface.Interface):
 
     """
 
-    def folders():
+    def folders(name=None):
         """The folders in this account.
 
         Sorted alphabetically.
+
+        If name is given, the resulting list will only contain at most one
+        folder, matching the given name.
 
         """
 
