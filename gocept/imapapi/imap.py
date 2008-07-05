@@ -5,12 +5,14 @@
 """Wrapper for IMAP connections to allow some experiments."""
 
 import imaplib
+import logging
+
+logger = logging.getLogger('gocept.imapapi.imap')
 
 
 def callable_proxy(name, callable):
     def proxy(*args, **kw):
-        # XXX next time we need this: log to zope's logger mechanism on debug level
-        # print "IMAP call", name, args, kw
+        logger.debug('%s(%s, %s)' % (name, args, kw))
         return callable(*args, **kw)
     return proxy
 
@@ -23,6 +25,7 @@ class IMAPConnection(object):
 
     def __init__(self, host, port):
         self.server = imaplib.IMAP4(host, port)
+        logger.debug('connect(%s, %s)' % (host, port))
 
     def __getattr__(self, name):
         attr = getattr(self.server, name)
