@@ -52,12 +52,17 @@ class Folder(object):
         else:
             return self.parent.path + self.separator + self.name
 
-    def folders(self):
+    def folders(self, name=None):
         """The subfolders in this folder."""
         result = []
-        code, data = self.server.list(self.path)
+        path = self.path
+        if name:
+            path = path + self.separator + name
+        code, data = self.server.list(path)
         assert code == 'OK'
         for response in data:
+            if response is None:
+                continue
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
             name = name.split(sep)
             if len(name) != self.depth + 1:

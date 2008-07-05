@@ -40,6 +40,14 @@ Here's a folder that's a bit deeper in the hierarchy:
 >>> baz.depth
 2
 
+Individual folders can be retrieved by specifying their name:
+
+>>> INBOX.folders(name='Baz')
+[<gocept.imapapi.folder.Folder object 'INBOX/Baz' at 0x...>]
+
+>>> INBOX.folders(name='Qux')
+[]
+
 
 Retrieving messages
 ===================

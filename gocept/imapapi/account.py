@@ -28,12 +28,16 @@ class Account(object):
         self.server = gocept.imapapi.imap.IMAPConnection(host, port)
         self.server.login(user, password)
 
-    def folders(self):
+    def folders(self, name=None):
         """The folders in this account."""
         result = []
-        code, data = self.server.list()
+        if name is None:
+            name = ''
+        code, data = self.server.list(name)
         assert code == 'OK'
         for response in data:
+            if response is None:
+                continue
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
             name = name.split(sep)
             if len(name) != 1:
