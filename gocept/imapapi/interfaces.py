@@ -88,8 +88,17 @@ class IFolder(IFolderContainer, IMessageContainer, IAccountContent):
 class IBodyPart(zope.interface.Interface):
     """A part of a message body.
 
-    Can be multipart or non-multipart.
+    A dictionary-like object with the message body part's parameters as keys.
 
-    XXX complete interface
+    If the body part is of the major content type `multipart` then the `parts`
+    attribute contains the sub-parts.
 
     """
+
+    parts = zope.interface.Attribute("A list of sub-parts.")
+
+    def __getitem__(self, key):
+        """Access the property `key` from the body part."""
+
+    def fetch(self):
+        """Return a file object containing the data of the body."""
