@@ -55,7 +55,7 @@ def message_uid_headers(data):
     """
     data = ''.join('\r\n'.join(parts) for parts in data)
     tokens = tokenize(data)
-    uid = int(tokens[1][1].value)
+    uid = tokens[1][1]
     headers = tokens[1][3]
     return uid, headers
 
@@ -97,7 +97,7 @@ def _parse_nonmultipart(element, path):
     data['id'] = element[3]
     data['description'] = element[4]
     data['encoding'] = element[5].lower()
-    data['size'] = int(element[6].value)
+    data['size'] = element[6]
     data['partnumber'] = path
     return data
 
@@ -181,7 +181,23 @@ class Atom(object):
     >>> str(Atom('foo'))
     'foo'
 
+    >>> repr(Atom('nil'))
+    'None'
+    >>> Atom('nil') is None
+    True
+
     """
+
+    def __new__(cls, value):
+        if value.lower() == 'nil':
+            return None
+        try:
+            number = int(value)
+        except ValueError:
+            pass
+        else:
+            return number
+        return object.__new__(cls)
 
     def __init__(self, value):
         self.value = value
@@ -332,6 +348,12 @@ def read_atom(data):
     >>> read_atom(_('bar baz'))
     <IMAP atom bar>
 
+    >>> print read_atom(_('nil'))
+    None
+
+    >>> print read_atom(_('1234'))
+    1234
+
     """
     assert data.ahead in ATOM_CHARS
     result = ''
@@ -402,7 +424,7 @@ def tokenize(data):
     ...
     ... This is a test mail.
     ...  FLAGS (\\Deleted))''')
-    [[<IMAP atom UID>, <IMAP atom 17>, <IMAP atom RFC822>,
+    [[<IMAP atom UID>, 17, <IMAP atom RFC822>,
      'From: foo@example.com\nSubject: Test\n\nThis is a test mail.\n',
      <IMAP atom FLAGS>, [<IMAP flag \Deleted>]]]
 
