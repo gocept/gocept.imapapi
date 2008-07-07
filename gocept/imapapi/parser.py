@@ -20,7 +20,7 @@ def mailbox_list(line):
 
     """
     flags, sep, name = parse(line)
-    return flags, sep, astring(name)
+    return flags, sep, mailbox(name)
 
 
 def uidvalidity(line):
@@ -475,6 +475,30 @@ def nstring(value):
         return None
     else:
         raise ValueError('%r cannot be read as an nstring.' % value)
+
+
+def mailbox(value):
+    """Interpret a parsed value as a mailbox name.
+
+    Mailbox names are astrings with the value 'INBOX' being treated specially.
+
+    >>> mailbox('foo/bar')
+    'foo/bar'
+
+    >>> mailbox('INBOX')
+    'INBOX'
+
+    >>> mailbox('iNbOx')
+    'INBOX'
+
+    # XXX Clarify what should happen for 'iNbOx/foo'.
+
+    """
+    value = astring(value)
+    if value.upper() == 'INBOX':
+        return 'INBOX'
+    else:
+        return value
 
 
 def number(value):
