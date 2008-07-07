@@ -19,14 +19,14 @@ def mailbox_list(line):
     ([<IMAP flag \NoInferiors>, <IMAP flag \UnMarked>], '/', 'INBOX/Baz/qux')
 
     """
-    flags, sep, name = tokenize(line)
+    flags, sep, name = parse(line)
     return flags, sep, astring(name)
 
 
 def uidvalidity(line):
     """Parse an IMAP `status` response to a UIDVALIDITY query.
     """
-    foldername, response = tokenize(line)
+    foldername, response = parse(line)
     assert response[0].value == 'UIDVALIDITY'
     return number(response[1])
 
@@ -35,9 +35,9 @@ def message_uid_headers(data):
     """Parse an IMAP `fetch` response for UID and RFC822.HEADER.
     """
     data = ''.join('\r\n'.join(parts) for parts in data)
-    tokens = tokenize(data)
-    uid = number(tokens[1][1])
-    headers = tokens[1][3]
+    items = parse(data)
+    uid = number(items[1][1])
+    headers = items[1][3]
     return uid, headers
 
 def _parse_structure(structure, path):
@@ -85,9 +85,9 @@ def _parse_nonmultipart(element, path):
 def message_structure(data):
     """Parse an IMAP `fetch` response for BODYSTRUCTURE.
     """
-    tokens = tokenize(data)
-    assert len(tokens) == 2
-    structure = tokens[1][3]
+    items = parse(data)
+    assert len(items) == 2
+    structure = items[1][3]
     structure = _parse_structure(structure, '')
     return structure
 
@@ -95,7 +95,7 @@ def message_structure(data):
 ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){ %*"\]']
 
 
-class TokenizeError(Exception):
+class ParseError(Exception):
     def __init__(self, msg, data):
         Exception.__init__(self, "%s in '%s' at index %s." %
                            (msg, data.string, data.index))
@@ -257,7 +257,7 @@ def read_quoted(data):
             c = data.next()
         result += c
     else:
-        raise TokenizeError('Unexpected end of quoted string', data)
+        raise ParseError('Unexpected end of quoted string', data)
     return result
 
 
@@ -279,11 +279,11 @@ def read_literal(data):
         count += c
     if not (data.ahead and data.next() == '\r' and
             data.ahead and data.next() == '\n'):
-        raise TokenizeError('Syntax error in literal string', data)
+        raise ParseError('Syntax error in literal string', data)
     try:
         count = int(count)
     except ValueError:
-        raise TokenizeError(
+        raise ParseError(
             'Non-integer token for length of literal string', data)
 
     result = ''
@@ -293,7 +293,7 @@ def read_literal(data):
         if not count:
             break
     else:
-        raise TokenizeError('Unexpected end of literal string', data)
+        raise ParseError('Unexpected end of literal string', data)
     return result
 
 
@@ -308,9 +308,9 @@ def read_list(data):
 
     """
     assert data.next() == '('
-    result = list(tokenize_recursive(data))
+    result = list(parse_recursive(data))
     if not data.ahead or data.next() != ')':
-        raise TokenizeError('Unexpected end of list', data)
+        raise ParseError('Unexpected end of list', data)
     return result
 
 
@@ -351,8 +351,8 @@ def read_flag(data):
     return Flag(read_atom(data).value)
 
 
-def tokenize_recursive(data):
-    """Tokenize an IMAP response until the end of the current nested list.
+def parse_recursive(data):
+    """Parse an IMAP response until the end of the current nested list.
 
     This loop is designed in such a way that the read_* functions always
     operate on expressions that include all delimiting characters such as
@@ -380,23 +380,23 @@ def tokenize_recursive(data):
         elif c == '(':
             continue
         else:
-            raise TokenizeError('Syntax error %s' % c, data)
+            raise ParseError('Syntax error %s' % c, data)
 
 
-def tokenize(data):
-    r"""Tokenize an IMAP response with no regard to numerals and NIL.
+def parse(data):
+    r"""Parse an IMAP response with no regard to numerals and NIL.
 
-    >>> tokenize('')
+    >>> parse('')
     []
 
-    >>> tokenize('foo "bar"')
+    >>> parse('foo "bar"')
     [<IMAP atom foo>, 'bar']
 
-    >>> tokenize('(\\Noselect \\Marked) "/" INBOX/Foo/bar')
+    >>> parse('(\\Noselect \\Marked) "/" INBOX/Foo/bar')
     [[<IMAP flag \Noselect>, <IMAP flag \Marked>], '/',
      <IMAP atom INBOX/Foo/bar>]
 
-    >>> tokenize('''(UID 17 RFC822 {58}\r\n\
+    >>> parse('''(UID 17 RFC822 {58}\r\n\
     ... From: foo@example.com
     ... Subject: Test
     ...
@@ -406,16 +406,16 @@ def tokenize(data):
      'From: foo@example.com\nSubject: Test\n\nThis is a test mail.\n',
      <IMAP atom FLAGS>, [<IMAP flag \Deleted>]]]
 
-    >>> tokenize(r'(BODYSTRUCTURE ("TEXT" "PLAIN")("TEXT" "HTML"))')
+    >>> parse(r'(BODYSTRUCTURE ("TEXT" "PLAIN")("TEXT" "HTML"))')
     [[<IMAP atom BODYSTRUCTURE>, ['TEXT', 'PLAIN'], ['TEXT', 'HTML']]]
-    >>> tokenize(r'(BODYSTRUCTURE ("TEXT" "PLAIN") ("TEXT" "HTML"))')
+    >>> parse(r'(BODYSTRUCTURE ("TEXT" "PLAIN") ("TEXT" "HTML"))')
     [[<IMAP atom BODYSTRUCTURE>, ['TEXT', 'PLAIN'], ['TEXT', 'HTML']]]
 
     """
     data = LookAheadStringIter(data)
-    result = list(tokenize_recursive(data))
+    result = list(parse_recursive(data))
     if data.ahead:
-        raise TokenizeError('Inconsistent nesting of lists', data)
+        raise ParseError('Inconsistent nesting of lists', data)
     return result
 
 
