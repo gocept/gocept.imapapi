@@ -55,7 +55,7 @@ def message_uid_headers(data):
     """
     data = ''.join('\r\n'.join(parts) for parts in data)
     tokens = tokenize(data)
-    uid = tokens[1][1]
+    uid = int(tokens[1][1].value)
     headers = tokens[1][3]
     return uid, headers
 
@@ -97,7 +97,7 @@ def _parse_nonmultipart(element, path):
     data['id'] = element[3]
     data['description'] = element[4]
     data['encoding'] = element[5].lower()
-    data['size'] = element[6]
+    data['size'] = int(element[6].value)
     data['partnumber'] = path
     return data
 
@@ -175,29 +175,23 @@ _ = LookAheadStringIter
 class Atom(object):
     """An IMAP atom.
 
+    Atoms do not know about interpretation of NIL as None and integer literals
+    as numbers. Since that is context dependent, these things belong in the
+    code calling the parser.
+
     >>> repr(Atom('foo'))
     '<IMAP atom foo>'
 
     >>> str(Atom('foo'))
     'foo'
 
-    >>> repr(Atom('nil'))
-    'None'
-    >>> Atom('nil') is None
-    True
+    >>> Atom('NIL')
+    <IMAP atom NIL>
+
+    >>> Atom('123')
+    <IMAP atom 123>
 
     """
-
-    def __new__(cls, value):
-        if value.lower() == 'nil':
-            return None
-        try:
-            number = int(value)
-        except ValueError:
-            pass
-        else:
-            return number
-        return object.__new__(cls)
 
     def __init__(self, value):
         self.value = value
@@ -342,17 +336,20 @@ def read_list(data):
 def read_atom(data):
     """Read an atom from an IMAP response.
 
+    Like atoms, this internal function of the parser does not care about NIL
+    and integer literals.
+
     >>> read_atom(_('foo'))
     <IMAP atom foo>
 
     >>> read_atom(_('bar baz'))
     <IMAP atom bar>
 
-    >>> print read_atom(_('nil'))
-    None
+    >>> read_atom(_('NIL'))
+    <IMAP atom NIL>
 
-    >>> print read_atom(_('1234'))
-    1234
+    >>> read_atom(_('123'))
+    <IMAP atom 123>
 
     """
     assert data.ahead in ATOM_CHARS
@@ -424,7 +421,7 @@ def tokenize(data):
     ...
     ... This is a test mail.
     ...  FLAGS (\\Deleted))''')
-    [[<IMAP atom UID>, 17, <IMAP atom RFC822>,
+    [[<IMAP atom UID>, <IMAP atom 17>, <IMAP atom RFC822>,
      'From: foo@example.com\nSubject: Test\n\nThis is a test mail.\n',
      <IMAP atom FLAGS>, [<IMAP flag \Deleted>]]]
 
@@ -439,3 +436,61 @@ def tokenize(data):
     if data.ahead:
         raise TokenizeError('Inconsistent nesting of lists', data)
     return result
+
+
+def astring(value):
+    """Interpret a parsed value as an astring.
+
+    An astring is a string that is either represented as a string literal or
+    as an atom. It cannot be non-existent.
+
+    >>> astring('foo')
+    'foo'
+
+    >>> astring(Atom('bar'))
+    'bar'
+
+    >>> astring(Atom('NIL'))
+    'NIL'
+
+    >>> astring(['foo', 'bar'])
+    Traceback (most recent call last):
+    ValueError: ['foo', 'bar'] cannot be read as an astring.
+
+    """
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, Atom):
+        return value.value
+    else:
+        raise ValueError('%r cannot be read as an astring.' % value)
+
+
+def nstring(value):
+    """Interpret a parsed value as an nstring.
+
+    An nstring is a string that is always represented as a string literal. It
+    may be non-existent which is denoted by the special form NIL (parsed as an
+    atom with the value 'NIL').
+
+    >>> nstring('foo')
+    'foo'
+
+    >>> nstring(Atom('bar'))
+    Traceback (most recent call last):
+    ValueError: <IMAP atom bar> cannot be read as an nstring.
+
+    >>> repr(nstring(Atom('NIL')))
+    'None'
+
+    >>> nstring(['foo', 'bar'])
+    Traceback (most recent call last):
+    ValueError: ['foo', 'bar'] cannot be read as an nstring.
+
+    """
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, Atom) and value.value == 'NIL':
+        return None
+    else:
+        raise ValueError('%r cannot be read as an nstring.' % value)
