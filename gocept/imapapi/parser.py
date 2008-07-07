@@ -4,12 +4,6 @@
 # $Id$
 """Parsing IMAP responses."""
 
-import re
-
-
-mailbox_list_re = re.compile(
-    r'^\((?P<flags>.*?)\) "(?P<sep>.)" "(?P<name>.*)"$')
-
 
 def mailbox_list(line):
     r"""Parse an IMAP `mailbox_list` response.
@@ -19,35 +13,22 @@ def mailbox_list(line):
     Currently this is only intended to handle responses as dovecot returns
     them:
 
-    >>> mailbox_list('(\\Noselect \\HasChildren) "/" "INBOX/Baz"')
-    ('\\Noselect \\HasChildren', '/', 'INBOX/Baz')
+    >>> mailbox_list('(\\Noselect \\HasChildren) "/" INBOX')
+    ([<IMAP flag \Noselect>, <IMAP flag \HasChildren>], '/', 'INBOX')
     >>> mailbox_list('(\\NoInferiors \\UnMarked) "/" "INBOX/Baz/qux"')
-    ('\\NoInferiors \\UnMarked', '/', 'INBOX/Baz/qux')
+    ([<IMAP flag \NoInferiors>, <IMAP flag \UnMarked>], '/', 'INBOX/Baz/qux')
 
     """
-    match = mailbox_list_re.match(line)
-    groups = match.groupdict()
-    return (groups['flags'], groups['sep'], groups['name'])
-
-
-uidvalidity_re = re.compile(r'.*?\(UIDVALIDITY (?P<uidvalidity>[0-9]+)\)$')
+    flags, sep, name = tokenize(line)
+    return flags, sep, astring(name)
 
 
 def uidvalidity(line):
     """Parse an IMAP `status` response to a UIDVALIDITY query.
     """
-    match = uidvalidity_re.match(line)
-    return int(match.groupdict()['uidvalidity'])
-
-
-# message_uid_other_re = re.compile(r'^[0-9]+ \(UID (?P<uid>[0-9]+)')
-
-
-# def message_uid_other(line):
-#     """Parse an IMAP `fetch` response asking for a UID.
-#     """
-#     match = message_uid_other_re.match(line)
-#     return int(match.groupdict()['uid'])
+    foldername, response = tokenize(line)
+    assert response[0].value == 'UIDVALIDITY'
+    return number(response[1])
 
 
 def message_uid_headers(data):
@@ -55,11 +36,11 @@ def message_uid_headers(data):
     """
     data = ''.join('\r\n'.join(parts) for parts in data)
     tokens = tokenize(data)
-    uid = int(tokens[1][1].value)
+    uid = number(tokens[1][1])
     headers = tokens[1][3]
     return uid, headers
 
-def _parse_structure(structure, path): 
+def _parse_structure(structure, path):
     if isinstance(structure[0], str):
         return _parse_nonmultipart(structure, path)
     else:
@@ -94,10 +75,10 @@ def _parse_nonmultipart(element, path):
     if isinstance(element[2], list):
         while element[2]:
             data['parameters'][element[2].pop().lower()] = element[2].pop()
-    data['id'] = element[3]
-    data['description'] = element[4]
+    data['id'] = nstring(element[3])
+    data['description'] = nstring(element[4])
     data['encoding'] = element[5].lower()
-    data['size'] = int(element[6].value)
+    data['size'] = number(element[6])
     data['partnumber'] = path
     return data
 
@@ -494,3 +475,27 @@ def nstring(value):
         return None
     else:
         raise ValueError('%r cannot be read as an nstring.' % value)
+
+
+def number(value):
+    """Interpret a parsed value as a number.
+
+    Numbers are represented by atoms whose value is a decimal representation
+    of the number.
+
+    >>> number(Atom('42'))
+    42
+
+    >>> number(Atom('foo'))
+    Traceback (most recent call last):
+    ValueError: <IMAP atom foo> cannot be read as a number.
+
+    >>> number(42)
+    Traceback (most recent call last):
+    ValueError: 42 cannot be read as a number.
+
+    """
+    try:
+        return int(value.value)
+    except (AttributeError, ValueError):
+        raise ValueError('%r cannot be read as a number.' % value)
