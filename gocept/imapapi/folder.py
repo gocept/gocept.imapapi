@@ -3,7 +3,6 @@
 # $Id: account.py 12226 2008-07-01 13:39:31Z thomas $
 
 
-import imaplib
 import email.Parser
 
 import zope.interface

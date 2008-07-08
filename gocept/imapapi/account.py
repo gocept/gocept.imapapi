@@ -3,13 +3,9 @@
 # $Id$
 
 
-import imaplib
-import email.Parser
-
 import zope.interface
 
 import gocept.imapapi.interfaces
-import gocept.imapapi.message
 import gocept.imapapi.folder
 import gocept.imapapi.parser
 import gocept.imapapi.imap
