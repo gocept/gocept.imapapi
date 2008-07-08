@@ -6,6 +6,10 @@ import zope.interface
 import zope.interface.common.mapping
 
 
+class IMAPError(Exception):
+    """An error raised due to a failed IMAP command."""
+
+
 class IAccountContent(zope.interface.Interface):
     """Something that resides in the object hierarchy of an account.
 
@@ -42,12 +46,23 @@ class IFolderContainer(zope.interface.Interface):
     """
 
     def folders(name=None):
-        """The folders in this account.
+        """Retrieve a list of folders.
 
         Sorted alphabetically.
 
         If name is given, the resulting list will only contain at most one
         folder, matching the given name.
+
+        """
+
+    def create_folder(name):
+        """Create a new folder with the given name.
+
+        If the name is invalid as a folder name, another folder with the same
+        name exists in the container already, or some error occured while
+        trying to create the folder on the server, an exception is raised.
+
+        Returns the new folder.
 
         """
 

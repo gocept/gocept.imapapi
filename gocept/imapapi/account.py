@@ -43,3 +43,19 @@ class Account(object):
             result.append(gocept.imapapi.folder.Folder(name, self, sep))
         result.sort(key=lambda folder:folder.name)
         return result
+
+    def create_folder(self, name):
+        try:
+            name.decode('ascii')
+        except UnicodeDecodeError:
+            raise ValueError('%r is not a valid folder name.' % name)
+
+        code, data = self.server.create(name)
+        if code == 'NO':
+            raise gocept.imapapi.interfaces.IMAPError(
+                "Could not create folder '%s': %s" % (name, data[0]))
+        assert code == 'OK'
+
+        new = self.folders(name)
+        assert len(new) == 1
+        return new[0]
