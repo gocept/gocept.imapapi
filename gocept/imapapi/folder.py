@@ -73,6 +73,23 @@ class Folder(object):
         result.sort(key=lambda folder:folder.name)
         return result
 
+    def create_folder(self, name):
+        try:
+            name.decode('ascii')
+        except UnicodeDecodeError:
+            raise ValueError('%r is not a valid folder name.' % name)
+
+        path = self.path + self.separator + name
+        code, data = self.server.create(path)
+        if code == 'NO':
+            raise gocept.imapapi.interfaces.IMAPError(
+                "Could not create folder '%s': %s" % (path, data[0]))
+        assert code == 'OK'
+
+        new = self.folders(name)
+        assert len(new) == 1
+        return new[0]
+
     def messages(self, name=None):
         code, data = self.server.select(self.path)
         count = int(data[0])

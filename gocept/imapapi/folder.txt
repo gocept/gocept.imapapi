@@ -2,6 +2,9 @@
 IMAP Folders
 ============
 
+Retrieving IMAP folders
+=======================
+
 IMAP accounts provide access to the folder structure by exposing the top-level
 folders:
 
@@ -47,6 +50,30 @@ Individual folders can be retrieved by specifying their name:
 
 >>> INBOX.folders(name='Qux')
 []
+
+Creating folders
+================
+
+Folders may be created as top-level folders of an account or within existing
+folders.
+
+>>> top_level = account.create_folder('Top level')
+>>> account.folders()
+[<gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
+ <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>,
+ <gocept.imapapi.folder.Folder object 'Top level' at 0x...>]
+>>> top_level.name
+'Top level'
+>>> top_level.path
+'Top level'
+
+>>> subfolder = top_level.create_folder('Subfolder')
+>>> top_level.folders()
+[<gocept.imapapi.folder.Folder object 'Top level/Subfolder' at 0x...>]
+>>> subfolder.name
+'Subfolder'
+>>> subfolder.path
+'Top level/Subfolder'
 
 
 Retrieving messages
