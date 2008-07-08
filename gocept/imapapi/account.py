@@ -31,7 +31,7 @@ class Account(object):
             name = ''
         code, data = self.server.list(name)
         assert code == 'OK'
-        for response in data:
+        for response in gocept.imapapi.parser.unsplit(data):
             if response is None:
                 continue
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)

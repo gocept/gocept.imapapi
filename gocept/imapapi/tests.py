@@ -24,7 +24,7 @@ def setUp(self):
     # end of a run to preserve data for debugging purposes.
     data = callIMAP(server, 'list')
     names = []
-    for response in data:
+    for response in gocept.imapapi.parser.unsplit(data):
         flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
         names.append(name)
     for name in reversed(sorted(names)):

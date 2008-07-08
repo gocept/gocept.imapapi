@@ -5,6 +5,31 @@
 """Parsing IMAP responses."""
 
 
+def unsplit(items):
+    """Restore the raw IMAP response from what imaplib server commands return.
+
+    """
+    if items == [None]:
+        return
+    line = ''
+    for item in items:
+        if type(item) is tuple:
+            line += '\r\n'.join(item)
+        else:
+            yield line + item
+            line = ''
+    assert not line
+
+
+def unsplit_one(items):
+    """Convinience function that directly returns the first IMAP response line
+    restored from an imaplib server response.
+
+    """
+    for line in unsplit(items):
+        return line
+
+
 def mailbox_list(line):
     r"""Parse an IMAP `mailbox_list` response.
 
@@ -34,7 +59,6 @@ def uidvalidity(line):
 def message_uid_headers(data):
     """Parse an IMAP `fetch` response for UID and RFC822.HEADER.
     """
-    data = ''.join('\r\n'.join(parts) for parts in data)
     items = parse(data)
     uid = number(items[1][1])
     headers = items[1][3]
