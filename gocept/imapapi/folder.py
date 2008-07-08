@@ -59,7 +59,7 @@ class Folder(object):
             path = path + self.separator + name
         code, data = self.server.list(path)
         assert code == 'OK'
-        for response in data:
+        for response in gocept.imapapi.parser.unsplit(data):
             if response is None:
                 continue
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
@@ -101,7 +101,8 @@ class Folder(object):
         msgs = []
         parser = email.Parser.Parser()
         for data in fetched_msgs:
-            uid, headers = gocept.imapapi.parser.message_uid_headers(data)
+            uid, headers = gocept.imapapi.parser.message_uid_headers(
+                gocept.imapapi.parser.unsplit_one(data))
             name = '%s-%s' % (uidvalidity, uid)
             msg = parser.parsestr(headers, True)
             msgs.append(gocept.imapapi.message.Message(
