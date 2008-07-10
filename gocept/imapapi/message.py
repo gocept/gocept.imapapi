@@ -2,10 +2,11 @@
 # See also LICENSE.txt
 # $Id$
 
-
 import UserDict
+import base64
 import email.Header
 import gocept.imapapi.interfaces
+import quopri
 import zope.interface
 
 
@@ -59,7 +60,12 @@ class BodyPart(object):
         return parts
 
     def fetch(self):
-        """Fetch the body part's content."""
+        """Fetch the body part's content.
+
+        Decodes any transfer encoding specified by the
+        Content-Transfer-Encoding header field.
+
+        """
         # XXX This is icky. This means that on multipart messages we will
         # fetch everything but on non-multipart messages we only fetch the
         # first element. I also tried creating a fake multi-part body but
@@ -78,6 +84,11 @@ class BodyPart(object):
                                      '(BODY[%s])' % partnumber)
         # XXX Performance and memory optimisations here, please.
         data = data[0][1]
+        transfer_enc = self['encoding']
+        if transfer_enc == 'quoted-printable':
+            data = quopri.decodestring(data)
+        elif transfer_enc == 'base64':
+            data = base64.b64decode(data)
         return data
 
 
