@@ -112,8 +112,11 @@ class IBodyPart(zope.interface.Interface):
 
     parts = zope.interface.Attribute("A list of sub-parts.")
 
-    def __getitem__(self, key):
+    def __getitem__(key):
         """Access the property `key` from the body part."""
 
-    def fetch(self):
+    def get(key, default=None):
+        """Access the property `key` from the body part or return default."""
+
+    def fetch():
         """Return a file object containing the data of the body."""
