@@ -49,6 +49,9 @@ class BodyPart(object):
             return self._parent
         return self._parent.message
 
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+
     def __getitem__(self, key):
         return self._data[key]
 
@@ -84,7 +87,7 @@ class BodyPart(object):
                                      '(BODY[%s])' % partnumber)
         # XXX Performance and memory optimisations here, please.
         data = data[0][1]
-        transfer_enc = self['encoding']
+        transfer_enc = self.get('encoding')
         if transfer_enc == 'quoted-printable':
             data = quopri.decodestring(data)
         elif transfer_enc == 'base64':
