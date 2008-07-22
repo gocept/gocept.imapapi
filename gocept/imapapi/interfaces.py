@@ -4,6 +4,7 @@
 
 import zope.interface
 import zope.interface.common.mapping
+import zope.schema
 
 
 class IMAPError(Exception):
@@ -12,6 +13,17 @@ class IMAPError(Exception):
 
 class IAccountContent(zope.interface.Interface):
     """Something that resides in the object hierarchy of an account.
+
+    This basically means that it can (in general) be associated with an
+    account and that it has a name and a parent that locates it in the
+    hierarchy.
+
+    The hierarchy may not be unambiguously traversable because of separate
+    name spaces, i.e. for folders and messages.
+
+    Specific applications have to pay attention to the actual object they are
+    trying to establish a path for and keep markers that identifies those
+    namespaces for later traversal.
 
     """
 
@@ -22,8 +34,6 @@ class IAccountContent(zope.interface.Interface):
 
 class IMessage(IAccountContent):
     """A message.
-
-    Provides a mapping of RfC822-style headers.
 
     """
 
@@ -37,51 +47,34 @@ class IMessage(IAccountContent):
     text = zope.interface.Attribute(
         'The body of the message as text/plain.')
 
+    body = zope.interface.Attribute(
+        'The message\'s body structure and content given as an IBodyPart object.') 
 
-class IFolderContainer(zope.interface.Interface):
-    """An object which contains IMAP folders.
 
-    IMAP folders are IFolder objects.
-
+class IFolders(zope.interface.common.mapping.IMapping):
+    """A mapping object for accessing folders located in IFolderContainers.
     """
 
-    def folders(name=None):
-        """Retrieve a list of folders.
 
-        Sorted alphabetically.
+class IMessages(zope.interface.common.mapping.IMapping):
+    """A mapping object for accessing messages located in IMessageContainers.
+    """
 
-        If name is given, the resulting list will only contain at most one
-        folder, matching the given name.
 
-        """
+class IFolderContainer(zope.interface.Interface):
+    """An object that contains folders."""
 
-    def create_folder(name):
-        """Create a new folder with the given name.
-
-        If the name is invalid as a folder name, another folder with the same
-        name exists in the container already, or some error occured while
-        trying to create the folder on the server, an exception is raised.
-
-        Returns the new folder.
-
-        """
+    folders = zope.schema.Object(
+        title=u'The sub-folders of this folder',
+        schema=IFolders)
 
 
 class IMessageContainer(zope.interface.Interface):
-    """An object which contains IMAP messages.
+    """An object that contains messages."""
 
-    Messages are IMessage objects.
-
-    """
-
-    def messages(name=None):
-        """Retrieve a list of messages.
-
-        If name is given, then only the message with the name is returned.
-
-        Otherwise all messages are retrieved.
-
-        """
+    messages = zope.schema.Object(
+        title=u'The messages of this folder.',
+        schema=IMessages)
 
 
 class IAccount(IFolderContainer):
@@ -110,7 +103,7 @@ class IBodyPart(zope.interface.Interface):
 
     """
 
-    parts = zope.interface.Attribute("A list of sub-parts.")
+    parts = zope.interface.Attribute('A list of sub-parts.')
 
     def __getitem__(key):
         """Access the property `key` from the body part."""

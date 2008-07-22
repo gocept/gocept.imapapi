@@ -1,22 +1,23 @@
 ============
-IMAP Folders
+IMAP folders
 ============
 
-Retrieving IMAP folders
-=======================
+Accessing IMAP folders
+======================
 
-IMAP accounts provide access to the folder structure by exposing the top-level
-folders:
+IMAP accounts provide access to the folder structure by exposing a list of
+top-level folders:
 
 >>> from gocept.imapapi.account import Account
+>>> from pprint import pprint
 >>> account = Account('localhost', 10143, 'test', 'bsdf')
->>> account.folders()
-[<gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
- <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>]
+>>> pprint(account.folders)
+{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
+ 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>}
 
 A folder knows about its name, path, separator, and depth in the hierarchy:
 
->>> INBOX = account.folders()[1]
+>>> INBOX = account.folders['INBOX']
 >>> INBOX.name
 'INBOX'
 >>> INBOX.path
@@ -28,12 +29,12 @@ A folder knows about its name, path, separator, and depth in the hierarchy:
 
 Folders also provide access to their direct sub-folders:
 
->>> INBOX.folders()
-[<gocept.imapapi.folder.Folder object 'INBOX/Baz' at 0x...>]
+>>> INBOX.folders
+{'Baz': <gocept.imapapi.folder.Folder object 'INBOX/Baz' at 0x...>}
 
 Here's a folder that's a bit deeper in the hierarchy:
 
->>> baz = INBOX.folders()[0]
+>>> baz = INBOX.folders['Baz']
 >>> baz.name
 'Baz'
 >>> baz.path
@@ -43,55 +44,48 @@ Here's a folder that's a bit deeper in the hierarchy:
 >>> baz.depth
 2
 
-Individual folders can be retrieved by specifying their name:
-
->>> INBOX.folders(name='Baz')
-[<gocept.imapapi.folder.Folder object 'INBOX/Baz' at 0x...>]
-
->>> INBOX.folders(name='Qux')
-[]
-
 Creating folders
 ================
 
 Folders may be created as top-level folders of an account or within existing
 folders.
 
->>> top_level = account.create_folder('Top level')
->>> account.folders()
-[<gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
- <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>,
- <gocept.imapapi.folder.Folder object 'Top level' at 0x...>]
+>>> from gocept.imapapi.folder import Folder
+>>> account.folders['Top level'] = Folder()
+>>> pprint(dict(account.folders))
+{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
+ 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>,
+ 'Top level': <gocept.imapapi.folder.Folder object 'Top level' at 0x...>}
+>>> top_level = account.folders['Top level']
 >>> top_level.name
 'Top level'
 >>> top_level.path
 'Top level'
 
->>> subfolder = top_level.create_folder('Subfolder')
->>> top_level.folders()
-[<gocept.imapapi.folder.Folder object 'Top level/Subfolder' at 0x...>]
+>>> top_level.folders['Subfolder'] = subfolder = Folder()
+>>> top_level.folders
+{'Subfolder': <gocept.imapapi.folder.Folder object 'Top level/Subfolder' at 0x...>}
 >>> subfolder.name
 'Subfolder'
 >>> subfolder.path
 'Top level/Subfolder'
 
 
-Retrieving messages
-===================
+Accessing messages
+==================
 
-Messages can be retrieved from the folder using the `messages` method. If we
-give no parameters, we will retrieve all messages:
+Messages can be retrieved from a folder using its `messages` attribute:
 
->>> INBOX.messages()
-[<gocept.imapapi.message.Message object 'INBOX/...' at 0x...>,
- <gocept.imapapi.message.Message object 'INBOX/...' at 0x...>]
+>>> pprint(dict(INBOX.messages))
+{'...-...': <gocept.imapapi.message.Message object 'INBOX/...-...' at 0x...>,
+ '...-...': <gocept.imapapi.message.Message object 'INBOX/...-...' at 0x...>}
 
 Individual messages have a name attribute which can be used to uniquely
 identify a message within a folder. We can use it to retrieve an individual
-message.
+message:
 
->>> mail1 = INBOX.messages()[0]
+>>> mail1 = INBOX.messages.values()[0]
 >>> mail1.headers['X-IMAPAPI-Test']
 u'1'
->>> INBOX.messages(name=mail1.name)[0].headers['X-IMAPAPI-Test']
+>>> INBOX.messages[mail1.name].headers['X-IMAPAPI-Test']
 u'1'
