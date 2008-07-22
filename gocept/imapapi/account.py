@@ -15,6 +15,9 @@ class Account(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IAccount)
 
+    depth = 0
+    path = ''
+
     def __init__(self, host, port, user, password):
         self.host = host
         self.port = port
@@ -24,38 +27,6 @@ class Account(object):
         self.server = gocept.imapapi.imap.IMAPConnection(host, port)
         self.server.login(user, password)
 
-    def folders(self, name=None):
-        """The folders in this account."""
-        result = []
-        if name is None:
-            name = ''
-        code, data = self.server.list(name)
-        assert code == 'OK'
-        for response in gocept.imapapi.parser.unsplit(data):
-            if response is None:
-                continue
-            flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
-            name = name.split(sep)
-            if len(name) != 1:
-                # Ignore all non-root folders
-                continue
-            name = name[0]
-            result.append(gocept.imapapi.folder.Folder(name, self, sep))
-        result.sort(key=lambda folder:folder.name)
-        return result
-
-    def create_folder(self, name):
-        try:
-            name.decode('ascii')
-        except UnicodeDecodeError:
-            raise ValueError('%r is not a valid folder name.' % name)
-
-        code, data = self.server.create(name)
-        if code == 'NO':
-            raise gocept.imapapi.interfaces.IMAPError(
-                "Could not create folder '%s': %s" % (name, data[0]))
-        assert code == 'OK'
-
-        new = self.folders(name)
-        assert len(new) == 1
-        return new[0]
+    @property
+    def folders(self):
+        return gocept.imapapi.folder.Folders(self)

@@ -2,7 +2,7 @@
 # See also LICENSE.txt
 # $Id: account.py 12226 2008-07-01 13:39:31Z thomas $
 
-
+import UserDict
 import email.Parser
 
 import zope.interface
@@ -11,11 +11,12 @@ import gocept.imapapi.interfaces
 import gocept.imapapi.message
 
 
+
 class Folder(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IFolder)
 
-    def __init__(self, name, parent, separator):
+    def __init__(self, name=None, parent=None, separator=None):
         self.name = name
         self.parent = parent
         self._separator = separator
@@ -37,7 +38,7 @@ class Folder(object):
 
     @property
     def separator(self):
-        # RFC3501 requires to always use the same separator as given by the
+        # RfC 3501 requires to always use the same separator as given by the
         # top-level node.
         if self.depth == 1:
             return self._separator
@@ -51,77 +52,73 @@ class Folder(object):
         else:
             return self.parent.path + self.separator + self.name
 
-    def folders(self, name=None):
-        """The subfolders in this folder."""
+    @property
+    def folders(self):
+        return Folders(self)
+
+    @property
+    def messages(self):
+        return gocept.imapapi.message.Messages(self)
+
+
+class Folders(UserDict.DictMixin):
+    """A mapping object for accessing folders located in IFolderContainers.
+    """
+
+    zope.interface.implements(gocept.imapapi.interfaces.IFolders)
+
+    def __init__(self, container):
+        self.container = container
+
+    def keys(self):
         result = []
-        path = self.path
-        if name:
-            path = path + self.separator + name
-        code, data = self.server.list(path)
+        path = self.container.path
+        code, data = self.container.server.list(path)
         assert code == 'OK'
         for response in gocept.imapapi.parser.unsplit(data):
             if response is None:
                 continue
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
+            # XXX Looping the separator this way is kind of icky.
+            self.separator = sep
             name = name.split(sep)
-            if len(name) != self.depth + 1:
+            if len(name) != self.container.depth + 1:
                 # Ignore all folders that are not direct children.
                 continue
             name = name[-1]
-            result.append(gocept.imapapi.folder.Folder(
-                name, self, sep))
-        result.sort(key=lambda folder:folder.name)
+            result.append(name)
+        result.sort()
         return result
 
-    def create_folder(self, name):
+    def __getitem__(self, key):
+        if key not in self.keys():
+            raise KeyError(key)
+        # XXX Part two of the icky separator communication
+        return Folder(key, self.container, self.separator)
+
+    def __setitem__(self, key, folder):
+        if not isinstance(folder, Folder):
+            raise ValueError('Can only store folder objects.')
+        if (folder.name is not None or
+            folder.parent is not None):
+            raise ValueError('Can only assign unattached folder objects.')
+
         try:
-            name.decode('ascii')
+            key = key.encode('ascii')
         except UnicodeDecodeError:
+            # XXX Look at modified UTF-7 encoding
             raise ValueError('%r is not a valid folder name.' % name)
 
-        path = self.path + self.separator + name
-        code, data = self.server.create(path)
+        if self.container.depth >= 1:
+            path = self.container.path + self.container.separator + key
+        else:
+            path = key
+
+        code, data = self.container.server.create(path)
         if code == 'NO':
             raise gocept.imapapi.interfaces.IMAPError(
                 "Could not create folder '%s': %s" % (path, data[0]))
         assert code == 'OK'
 
-        new = self.folders(name)
-        assert len(new) == 1
-        return new[0]
-
-    def messages(self, name=None):
-        code, data = self.server.select(self.path)
-        count = int(data[0])
-
-        # XXX The UID validity value should be stored on the folder. It must
-        # be valid throughout a session.
-        code, data = self.server.status(self.path, "(UIDVALIDITY)")
-        uidvalidity = gocept.imapapi.parser.uidvalidity(data[0])
-
-        # Step 1: Fetch by various criteria
-        fetched_msgs = []
-        if name is not None:
-            # Variant 1: Fetch by UID
-            validity, uid = name.split('-')
-            if int(validity) == uidvalidity:
-                code, data = self.server.uid('FETCH', '%s' % uid, '(UID RFC822.HEADER)')
-                fetched_msgs.append(data)
-        else:
-            # Variant 2: Fetch by sequence number
-            code, data = self.server.status(self.path, "(UIDVALIDITY)")
-            for i in xrange(1, count+1):
-                code, data = self.server.fetch(str(i), '(UID RFC822.HEADER)')
-                fetched_msgs.append(data)
-
-        # Step 2: Process fetched data
-        msgs = []
-        parser = email.Parser.Parser()
-        for data in fetched_msgs:
-            uid, headers = gocept.imapapi.parser.message_uid_headers(
-                gocept.imapapi.parser.unsplit_one(data))
-            name = '%s-%s' % (uidvalidity, uid)
-            msg = parser.parsestr(headers, True)
-            msgs.append(gocept.imapapi.message.Message(
-                name, self, msg))
-        return msgs
+        folder.name = key
+        folder.parent = self.container

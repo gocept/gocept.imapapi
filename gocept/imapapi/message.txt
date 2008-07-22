@@ -11,7 +11,7 @@ Messages are retrieved from folders which are IMessageContainers:
 
 >>> from gocept.imapapi.account import Account
 >>> account = Account('localhost', 10143, 'test', 'bsdf')
->>> INBOX = account.folders()[1]
+>>> INBOX = account.folders['INBOX']
 >>> INBOX.name
 'INBOX'
 >>> from gocept.imapapi.interfaces import IMessageContainer
@@ -26,7 +26,7 @@ False
 
 Let's get a message now:
 
->>> message = INBOX.messages()[0]
+>>> message = INBOX.messages.values()[0]
 >>> message
 <gocept.imapapi.message.Message object 'INBOX/...' at 0x...>
 

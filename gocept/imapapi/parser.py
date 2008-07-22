@@ -56,19 +56,27 @@ def uidvalidity(line):
     return number(response[1])
 
 
-def message_uid_headers(data):
-    """Parse an IMAP `fetch` response for UID and RFC822.HEADER.
+def message_uid(data):
+    """Parse an IMAP `fetch` response for UID.
     """
     items = parse(data)
     uid = number(items[1][1])
-    headers = items[1][3]
-    return uid, headers
+    return uid
+
+
+def message_headers(data):
+    """Parse an IMAP `UID FETCH` response for RFC822.HEADER.
+    """
+    items = parse(data)
+    return items[1][3]
+
 
 def _parse_structure(structure, path):
     if isinstance(structure[0], str):
         return _parse_nonmultipart(structure, path)
     else:
         return _parse_multipart(structure, path)
+
 
 def _parse_multipart(element, path):
     data = {}
