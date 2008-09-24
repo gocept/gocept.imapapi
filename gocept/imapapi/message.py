@@ -1,6 +1,5 @@
 # Copyright (c) 2008 gocept gmbh & co. kg
 # See also LICENSE.txt
-# $Id$
 
 import UserDict
 import base64
@@ -58,9 +57,21 @@ class BodyPart(object):
     @property
     def parts(self):
         parts = []
-        for part in self._data['parts']:
+        for part in self._data.get('parts', ()):
             parts.append(BodyPart(part, self))
         return parts
+
+    def find_all(self, content_type):
+        if self['content_type'].split(';')[0] == content_type:
+            yield self
+        else:
+            for child in self.parts:
+                for part in child.find_all(content_type):
+                    yield part
+
+    def find_one(self, content_type):
+        for part in self.find_all(content_type):
+            return part
 
     def fetch(self):
         """Fetch the body part's content.

@@ -1,6 +1,5 @@
 # Copyright (c) 2008 gocept gmbh & co. kg
 # See also LICENSE.txt
-# $Id$
 
 import zope.interface
 import zope.interface.common.mapping
@@ -110,6 +109,19 @@ class IBodyPart(zope.interface.Interface):
 
     def get(key, default=None):
         """Access the property `key` from the body part or return default."""
+
+    def find_all(content_type):
+        """Iterate over all parts with the given content type.
+
+        The iterator yields parts as found by a depth-first search, starting
+        with self. Sub-parts of matching parts will not be searched.
+
+        """
+
+    def find_one(content_type):
+        """Return the first part yielded by find_all or None.
+
+        """
 
     def fetch():
         """Return a file object containing the data of the body."""
