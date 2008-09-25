@@ -43,6 +43,7 @@ def setUp(self):
     message = ('From: test@localhost\nX-IMAPAPI-Test: 1\n'
                'X-No-Encoding-Header: Text \xFC or not\n'
                'X-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\n'
+               'X-Unknown-Encoding-Header: =?foobarschnappeldiwutz?q?Text_=C3=BC?=\n'
                'X-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\n'
                'Date: 02-Jul-2008 03:05:00 +0200\n'
                'Subject: Mail 1\n\nEverything is ok!')
