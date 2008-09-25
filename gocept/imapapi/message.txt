@@ -44,6 +44,8 @@ u'Text \xfc'
 Invalid encodings will end in unicode strings anyway but with replaced
 characters as a hint:
 
+>>> message.headers['X-Unknown-Encoding-Header']
+u'Text \ufffd\ufffd'
 >>> message.headers['X-Wrong-Encoding-Header']
 u'Text \ufffd\ufffd'
 >>> message.headers['X-No-Encoding-Header']
@@ -57,8 +59,7 @@ parts etc. This does not perform any mangling, decoding or other function that
 would change the representation from what is stored on the server:
 
 >>> message.raw
-'From: test@localhost\r\nX-IMAPAPI-Test: 1\r\nX-No-Encoding-Header: Text \xfc or not\r\nX-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\r\nX-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\r\nDate: 02-Jul-2008 03:05:00 +0200\r\nSubject: Mail 1\r\n\r\nEverything is ok!'
-
+'From: test@localhost\r\nX-IMAPAPI-Test: 1\r\nX-No-Encoding-Header: Text \xfc or not\r\nX-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\r\nX-Unknown-Encoding-Header: =?foobarschnappeldiwutz?q?Text_=C3=BC?=\r\nX-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\r\nDate: 02-Jul-2008 03:05:00 +0200\r\nSubject: Mail 1\r\n\r\nEverything is ok!'
 
 Plain text
 ===========

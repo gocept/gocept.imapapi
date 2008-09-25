@@ -25,7 +25,10 @@ class MessageHeaders(UserDict.DictMixin):
             if charset is None:
                 result += text.decode('ascii', 'replace')
             else:
-                result += text.decode(charset, 'replace')
+                try:
+                    result += text.decode(charset, 'replace')
+                except LookupError:
+                    result += text.decode('ascii', 'replace')
         return result
 
     def keys(self):
