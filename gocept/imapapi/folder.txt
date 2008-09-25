@@ -89,3 +89,14 @@ message:
 u'1'
 >>> INBOX.messages[mail1.name].headers['X-IMAPAPI-Test']
 u'1'
+
+
+Appending messages to folders
+=============================
+
+To store a new message in a folder, you `append` it:
+
+>>> INBOX.append('Foo')
+>>> mail = INBOX.messages.values()[-1]
+>>> mail.raw
+'Foo'
