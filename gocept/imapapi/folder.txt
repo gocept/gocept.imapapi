@@ -12,8 +12,8 @@ top-level folders:
 >>> from pprint import pprint
 >>> account = Account('localhost', 10143, 'test', 'bsdf')
 >>> pprint(account.folders)
-{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
- 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>}
+{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x2612732>,
+ 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x2134232>}
 
 A folder knows about its name, path, separator, and depth in the hierarchy:
 
@@ -30,7 +30,7 @@ A folder knows about its name, path, separator, and depth in the hierarchy:
 Folders also provide access to their direct sub-folders:
 
 >>> INBOX.folders
-{'Baz': <gocept.imapapi.folder.Folder object 'INBOX/Baz' at 0x...>}
+{'Baz': <gocept.imapapi.folder.Folder object 'INBOX/Baz' at 0x2318293>}
 
 Here's a folder that's a bit deeper in the hierarchy:
 
@@ -53,9 +53,9 @@ folders.
 >>> from gocept.imapapi.folder import Folder
 >>> account.folders['Top level'] = Folder()
 >>> pprint(dict(account.folders))
-{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
- 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>,
- 'Top level': <gocept.imapapi.folder.Folder object 'Top level' at 0x...>}
+{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x2142346>,
+ 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x2762352>,
+ 'Top level': <gocept.imapapi.folder.Folder object 'Top level' at 0x2123423>}
 >>> top_level = account.folders['Top level']
 >>> top_level.name
 'Top level'
@@ -64,7 +64,7 @@ folders.
 
 >>> top_level.folders['Subfolder'] = subfolder = Folder()
 >>> top_level.folders
-{'Subfolder': <gocept.imapapi.folder.Folder object 'Top level/Subfolder' at 0x...>}
+{'Subfolder': <gocept.imapapi.folder.Folder object 'Top level/Subfolder' at 0x2132423>}
 >>> subfolder.name
 'Subfolder'
 >>> subfolder.path
@@ -77,8 +77,8 @@ Accessing messages
 Messages can be retrieved from a folder using its `messages` attribute:
 
 >>> pprint(dict(INBOX.messages))
-{'...-...': <gocept.imapapi.message.Message object 'INBOX/...-...' at 0x...>,
- '...-...': <gocept.imapapi.message.Message object 'INBOX/...-...' at 0x...>}
+{'...-...': <gocept.imapapi.message.Message object 'INBOX/...-...' at 0x2162537>,
+ '...-...': <gocept.imapapi.message.Message object 'INBOX/...-...' at 0x2138986>}
 
 Individual messages have a name attribute which can be used to uniquely
 identify a message within a folder. We can use it to retrieve an individual

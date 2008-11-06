@@ -33,8 +33,8 @@ An account contains folders, but does not contain messages by itself:
 
 >>> from pprint import pprint
 >>> pprint(dict(account.folders))
-{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x...>,
- 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x...>}
+{'Bar': <gocept.imapapi.folder.Folder object 'Bar' at 0x2615309>,
+ 'INBOX': <gocept.imapapi.folder.Folder object 'INBOX' at 0x2631278>}
 
 >>> account.messages
 Traceback (most recent call last):
@@ -43,7 +43,7 @@ AttributeError: 'Account' object has no attribute 'messages'
 Individual folders can be retrieved by specifying their name:
 
 >>> account.folders['INBOX']
-<gocept.imapapi.folder.Folder object 'INBOX' at 0x...>
+<gocept.imapapi.folder.Folder object 'INBOX' at 0x2176287>
 
 >>> account.folders['nofolder']
 Traceback (most recent call last):
