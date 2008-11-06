@@ -89,13 +89,15 @@ Everything is ok!
 Multipart/alternative
 ---------------------
 
-Messages with the type ``multipart-alternative`` contain of several parts,
-which contain the same content in differnt types (e.g. plain text and html).
-The mailer has to choose the proper part and display it.
+Messages with the type ``multipart-alternative`` contain several parts with
+the same content in differnt types (e.g. plain text and html). The mailer
+itself chooses the proper part and displays it:
 
 >>> message = INBOX.messages.values()[1]
 >>> message.body
 <gocept.imapapi.message.BodyPart object at 0x2428811>
+>>> message.body['content_type']
+'multipart/alternative'
 
 This testmessage contains of two parts. One contains plain text, the other one
 html quoted text:
@@ -124,3 +126,37 @@ Everything is ok!
     Everything is ok!
   </body>
 </html>
+
+Multipart/mixed
+---------------
+
+Messages with the type ``multipart-mixed`` contain several parts with
+differnt content (e.g. plain text, images, pdf files). The mailer
+itself displays all parts inline or as an attachment:
+
+>>> message = INBOX.messages.values()[2]
+>>> message.body
+<gocept.imapapi.message.BodyPart object at 0x2428811>
+>>> message.body['content_type']
+'multipart/mixed'
+
+This testmessage contains of two parts. One part contains plain text, the
+other one an image file:
+
+>>> from pprint import pprint
+>>> parts = message.body.parts
+>>> pprint(parts)
+[<gocept.imapapi.message.BodyPart object at 0x2428819>,
+ <gocept.imapapi.message.BodyPart object at 0x2428212>]
+>>> print parts[0]['content_type']
+text/plain
+>>> print parts[1]['content_type']
+image/jpeg
+
+The parts content can be retrieved with the ``fetch`` method:
+
+>>> print parts[0].fetch()
+Everything is ok!
+
+>>> parts[1].fetch()
+'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x02\x00\x00d\x00d\x00\x00\xff\xec\x00\x11Ducky\x00\x01\x00\x04\x00\x00\x00H\x00\x00\xff\xe2\x058ICC_PROFILE\x00\x01\x01\x00\x00\x05(appl\x02 \x00\x00mntrRGB XYZ \x07\xd2\x00\x05\x00\r\x00\x0c\x00\x00\x00\x00acspAPPL\x00\x00\x00\x00appl\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\xf6\xd6\x00\x01\x00\x00\x00\x00\xd3-appl\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\rrXYZ\x00\x00\x01 \x00\x00\x00\x14gXYZ\x00\x00\x014\x00\x00\x00\x14bXYZ\x00\x00\x01H\x00\x00\x00\x14wtpt\x00\x00\x01\\\x00\x00\x00\x14chad\x00\x00\x01p\x00\x00\x00,rTRC\x00\x00\x01\x9c\x00\x00\x00\x0egTRC\x00\x00\x01\x9c\x00\x00\x00\x0ebTRC\x00\x00\x01\x9c\x00\x00\x00\x0edesc\x00\x00\x01\xac\x00\x00\x00?cprt\x00\x00\x02T\x00\x00\x00Hvcgt\x00\x00\x01\xec\x00\x00\x000ndin\x00\x00\x02\x1c\x00\x00\x008dscm\x00\x00\x02\x9c\x00K\x04g[q\xd3\xd3\t\\\x96\xa4\x91DH\x92\xfck\x9b\x03\xab\xd1\x9cS\xef\x8f\xa8`\xd1rI-\xfcf\xb2\x99\xcb\xf3i\xa2\xc60\xa4\xf6G2D\x96\'\xdfMB\xd2\xe3\xc1\x0e\xdf^\x9a;$=/u\x0fZ\xeb\xb3\x99}\xf6Q\xf9\x11\x18\x94A<z"\xf6\xf5\xfd\xa2\x020E\x8b\xe3|\x81\xe7\xd0\xe7\x93\x9bmO\x95\xc0p\x15}\x8dL|C).\xf67QbK\xbc\xe3q\x82dG\x80\xa1oDS`\xbf`\x1c\xbf4ZB\x9e\xe8x6^\x88\xcf\xa1\x8ba\xba\xb4\x96\xfb\xf88\x15M\xdb\x00\x00\x00\x00\x00\x00'
