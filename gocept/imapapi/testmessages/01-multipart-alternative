@@ -1,0 +1,24 @@
+To: Thomas Lotze <tl@gocept.com>
+Message-Id: <18EE7CC0-44FB-4802-BA8E-58F7BE1F7274@gocept.com>
+Content-Type: multipart/alternative; boundary=gocept-0123456789
+Subject: Mail 2 
+Date: Thu, 25 Sep 2008 13:50:58 +0200
+
+--gocept-0123456789
+Content-Type: text/plain; charset=US-ASCII;
+Content-Transfer-Encoding: 7bit
+
+Everything is ok!
+
+--gocept-0123456789
+Content-Type: text/html; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <title>Mail 2</title>
+  </head>
+  <body>
+    Everything is ok!
+  </body>
+</html>

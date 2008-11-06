@@ -28,7 +28,8 @@ Let's get a message now:
 
 >>> message = INBOX.messages.values()[0]
 >>> message
-<gocept.imapapi.message.Message object 'INBOX/...' at 0x...>
+<gocept.imapapi.message.Message object 'INBOX/...' at 0x2312872>
+
 
 Headers
 =======
@@ -51,6 +52,17 @@ u'Text \ufffd\ufffd'
 >>> message.headers['X-No-Encoding-Header']
 u'Text \ufffd or not'
 
+Other popular headers like From, Date and Subject can be accessed by using the
+dictionary API, too. They are also decoded into unicode automatically:
+
+>>> message.headers['From']
+u'test@localhost'
+>>> message.headers['Date']
+u'02-Jul-2008 03:05:00 +0200'
+>>> message.headers['Subject']
+u'Mail 1'
+
+
 Raw
 ===
 
@@ -61,11 +73,54 @@ would change the representation from what is stored on the server:
 >>> message.raw
 'From: test@localhost\r\nX-IMAPAPI-Test: 1\r\nX-No-Encoding-Header: Text \xfc or not\r\nX-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\r\nX-Unknown-Encoding-Header: =?foobarschnappeldiwutz?q?Text_=C3=BC?=\r\nX-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\r\nDate: 02-Jul-2008 03:05:00 +0200\r\nSubject: Mail 1\r\n\r\nEverything is ok!'
 
+
+Message body
+============
+
 Plain text
-===========
+----------
 
 The message body itself can also be retrieved in a plain text version (which
 might include encoded mime parts):
 
 >>> print message.text
 Everything is ok!
+
+Multipart/alternative
+---------------------
+
+Messages with the type ``multipart-alternative`` contain of several parts,
+which contain the same content in differnt types (e.g. plain text and html).
+The mailer has to choose the proper part and display it.
+
+>>> message = INBOX.messages.values()[1]
+>>> message.body
+<gocept.imapapi.message.BodyPart object at 0x2428811>
+
+This testmessage contains of two parts. One contains plain text, the other one
+html quoted text:
+
+>>> from pprint import pprint
+>>> parts = message.body.parts
+>>> pprint(parts)
+[<gocept.imapapi.message.BodyPart object at 0x2428819>,
+ <gocept.imapapi.message.BodyPart object at 0x2428212>]
+>>> print parts[0]['content_type']
+text/plain
+>>> print parts[1]['content_type']
+text/html
+
+The parts content can be retrieved with the ``fetch`` method:
+
+>>> print parts[0].fetch()
+Everything is ok!
+
+>>> print parts[1].fetch()
+<html>
+  <head>
+    <title>Mail 2</title>
+  </head>
+  <body>
+    Everything is ok!
+  </body>
+</html>
