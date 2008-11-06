@@ -14,6 +14,7 @@ from zope.testing import doctest
 import zope.testing.renormalizing
 
 import imaplib
+import gocept.imapapi
 import gocept.imapapi.parser
 
 checker = zope.testing.renormalizing.RENormalizing([
@@ -32,9 +33,7 @@ def clear_inbox(server):
     callIMAP(server, 'expunge')
 
 
-def load_messages(path, folder_name):
-    server = imaplib.IMAP4('localhost', 10143)
-    server.login('test', 'bsdf')
+def load_messages(package, path, server, folder_name):
     # Clean up the test folder from previous runs. We do not delete at the
     # end of a run to preserve data for debugging purposes.
     if folder_name == 'INBOX':
@@ -44,7 +43,7 @@ def load_messages(path, folder_name):
         callIMAP(server, 'create', folder_name)
 
     # Create messages in the test folder.
-    path = os.path.join(os.path.dirname(__file__), path)
+    path = os.path.join(os.path.dirname(package.__file__), path)
     for filename in sorted(os.listdir(path)):
         if filename.startswith('.') or filename.endswith('~'):
             continue
@@ -55,14 +54,8 @@ def load_messages(path, folder_name):
         message = open(filepath).read()
         callIMAP(server, 'append', folder_name, '', date, message)
 
-    # Done.
-    status, data = server.logout()
-    assert status == 'BYE'
 
-
-def setUp(self):
-    server = imaplib.IMAP4('localhost', 10143)
-    server.login('test', 'bsdf')
+def setup_account(server):
     # Clean up the test account from previous runs. We do not delete at the
     # end of a run to preserve data for debugging purposes.
     data = callIMAP(server, 'list')
@@ -79,8 +72,15 @@ def setUp(self):
     # Clear the INBOX from messages as we couldn't delete it earlier.
     clear_inbox(server)
 
+
+def setUp(self):
+    server = imaplib.IMAP4('localhost', 10143)
+    server.login('test', 'bsdf')
+
+    setup_account(server)
+
     # Create a message in the INBOX
-    load_messages('testmessages', 'INBOX')
+    load_messages(gocept.imapapi, 'testmessages', server, 'INBOX')
 
     # Create the standard hierarchy for tests
     callIMAP(server, 'create', 'INBOX/Baz')
