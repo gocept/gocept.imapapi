@@ -17,7 +17,7 @@ import imaplib
 import gocept.imapapi.parser
 
 checker = zope.testing.renormalizing.RENormalizing([
-    (re.compile('0x[0-9a-f]{7}'), "<MEM ADDRESS>")])
+    (re.compile('0x[0-9a-f]+'), "<MEM ADDRESS>")])
 
 def callIMAP(server, function, *args, **kw):
     status, data = getattr(server, function)(*args, **kw)
