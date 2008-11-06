@@ -39,7 +39,7 @@ def load_messages(package, path, server, folder_name):
     if folder_name == 'INBOX':
         clear_inbox(server)
     else:
-        callIMAP(server, 'delete', folder_name)
+        server.delete(folder_name)
         callIMAP(server, 'create', folder_name)
 
     # Create messages in the test folder.
