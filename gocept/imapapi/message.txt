@@ -73,10 +73,6 @@ would change the representation from what is stored on the server:
 >>> message.raw
 'From: test@localhost\r\nX-IMAPAPI-Test: 1\r\nX-No-Encoding-Header: Text \xfc or not\r\nX-Wrong-Encoding-Header: =?ascii?q?Text_=C3=BC?=\r\nX-Unknown-Encoding-Header: =?foobarschnappeldiwutz?q?Text_=C3=BC?=\r\nX-Correct-Encoding-Header: =?utf-8?q?Text_=C3=BC?=\r\nDate: 02-Jul-2008 03:05:00 +0200\r\nSubject: Mail 1\r\n\r\nEverything is ok!'
 
-
-Message body
-============
-
 Plain text
 ----------
 
@@ -86,11 +82,80 @@ might include encoded mime parts):
 >>> print message.text
 Everything is ok!
 
+
+Message body parts
+==================
+
+Message body parts represent mime sub-structures and are accessible through
+nested lists using the `body` of a message and the `parts` attribute on each
+body part:
+
+>>> message = INBOX.messages.values()[1]
+>>> part = message.body
+>>> part
+<gocept.imapapi.message.BodyPart object at 0x2428811>
+
+A body part is similar to a message in that it has headers and a body which
+can be fetched:
+
+>>> part['content_type']
+'multipart/alternative'
+>>> part.fetch()
+'To: Thomas Lotze <tl@gocept.com>...Everything is ok!\r\n  </body>\r\n</html>\r\n'
+
+
+Header access on body parts
+---------------------------
+
+Body parts implement a partial dictionary interface to access headers.
+Upper-/lowercase is normalized automatically:
+
+>>> 'content_type' in part
+True
+>>> part['content_type']
+'multipart/alternative'
+
+XXX Why is this 'content_type' instead of 'content-type' and why don't we
+provide normalized access?
+XXX>>> 'Content_Type' in part
+XXXTrue
+XXX>>> part['Content_Type']
+XXX'multipart/alternative'
+
+
+Accessing parts using the Content-ID header
+-------------------------------------------
+
+Body parts can carry a `Content-ID` header (or `cid` for short) which is
+globally unique and can be used to find a nested body part somewhere inside a
+body part.
+
+>>> message = INBOX.messages.values()[3]
+>>> message.headers['Subject']
+u'11 - AppleMail, Complex HTML with many images'
+
+>>> part1 = message.body.by_cid('919A8163-52C0-4CE3-B45C-F05A1AE2FC3D/top.jpg')
+>>> part1['id']
+'<919A8163-52C0-4CE3-B45C-F05A1AE2FC3D/top.jpg>'
+>>> part1['content_type']
+'image/jpeg'
+>>> part1['size']
+27412
+
+>>> part2 = message.body.by_cid('919A8163-52C0-4CE3-B45C-F05A1AE2FC3D/bottom.jpg')
+>>> part2['id']
+'<919A8163-52C0-4CE3-B45C-F05A1AE2FC3D/bottom.jpg>'
+>>> part2['content_type']
+'image/jpeg'
+>>> part2['size']
+19046
+
+
 Multipart/alternative
 ---------------------
 
 Messages with the type ``multipart-alternative`` contain several parts with
-the same content in differnt types (e.g. plain text and html). The mailer
+the same content in different types (e.g. plain text and html). The mailer
 itself chooses the proper part and displays it:
 
 >>> message = INBOX.messages.values()[1]
@@ -99,7 +164,7 @@ itself chooses the proper part and displays it:
 >>> message.body['content_type']
 'multipart/alternative'
 
-This testmessage contains of two parts. One contains plain text, the other one
+This test message contains of two parts. One contains plain text, the other one
 html quoted text:
 
 >>> from pprint import pprint
