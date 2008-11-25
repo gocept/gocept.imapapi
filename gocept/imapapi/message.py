@@ -57,6 +57,9 @@ class BodyPart(object):
     def __getitem__(self, key):
         return self._data[key]
 
+    def __contains__(self, key):
+        return key in self._data
+
     @property
     def parts(self):
         parts = []
@@ -107,6 +110,21 @@ class BodyPart(object):
         elif transfer_enc == 'base64':
             data = base64.b64decode(data)
         return data
+
+    def by_cid(self, cid):
+        """Return a sub-part by its Content-ID header."""
+        if not cid.startswith('<'):
+            # Lame protection against recursion
+            cid = '<%s>' % cid
+        for part in self.parts:
+            if cid == part.get('id'):
+                return part
+            try:
+                # Recursive
+                return part.by_cid(cid)
+            except KeyError:
+                pass
+        raise KeyError(cid)
 
 
 class Message(object):
