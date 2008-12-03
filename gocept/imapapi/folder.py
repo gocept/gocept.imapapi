@@ -65,7 +65,6 @@ class Folder(object):
         self.server.append(self.path, '', time.localtime(), message)
 
     def delete(self, message):
-        """Flag the given messages as deleted and expunge it."""
         self.server.uid('STORE', '%s' % message.UID, '+FLAGS', '(\\Deleted)')
         self.server.expunge()
 
