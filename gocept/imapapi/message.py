@@ -4,6 +4,7 @@
 import UserDict
 import base64
 import email.Header
+import email.Parser
 import gocept.imapapi.interfaces
 import quopri
 import zope.interface
@@ -125,6 +126,43 @@ class BodyPart(object):
             except KeyError:
                 pass
         raise KeyError(cid)
+
+
+class MessagePart(object):
+    """Message that is contained in a body part of type message/rfc822.
+    """
+
+    zope.interface.implements(gocept.imapapi.interfaces.IMessage)
+
+    def __init__(self, body):
+        self.body = body.parts[0]
+        parser = email.Parser.Parser()
+        code, data = body.server.select(body.message.parent.path)
+        code, data = body.server.uid(
+            'FETCH', '%s' % body.message.UID,
+            '(BODY.PEEK[%s.HEADER])' % body['partnumber'])
+        headers = gocept.imapapi.parser.message_headers(
+            gocept.imapapi.parser.unsplit_one(data))
+        msg = parser.parsestr(headers, True)
+        self.headers = MessageHeaders(msg)
+
+    @property
+    def text(self):
+        code, data = self.body.server.select(self.parent.path)
+        code, data = self.body.server.uid(
+            'FETCH', '%s' % self.UID,
+            '(BODY[%s.TEXT])' % self.body['partnumber'])
+        assert code == 'OK'
+        return data[0][1]
+
+    @property
+    def raw(self):
+        code, data = self.body.server.select(self.parent.path)
+        code, data = self.body.server.uid(
+            'FETCH', '%s' % self.UID,
+            '(BODY.PEEK[%s])' % self.body['partnumber'])
+        assert code == 'OK'
+        return data[0][1]
 
 
 class Message(object):

@@ -72,7 +72,9 @@ def message_headers(data):
 
 
 def _parse_structure(structure, path):
-    if isinstance(structure[0], str):
+    if structure[:2] == ['message', 'rfc822']:
+        return _parse_message_rfc822(structure, path)
+    elif isinstance(structure[0], str):
         return _parse_nonmultipart(structure, path)
     else:
         return _parse_multipart(structure, path)
@@ -114,6 +116,11 @@ def _parse_nonmultipart(element, path):
     data['partnumber'] = path
     return data
 
+def _parse_message_rfc822(element, path):
+    data = _parse_nonmultipart(element, path)
+    data['parts'] = [_parse_structure(element[8], path)]
+    return data
+
 def message_structure(data):
     """Parse an IMAP `fetch` response for BODYSTRUCTURE.
     """
@@ -124,7 +131,7 @@ def message_structure(data):
     return structure
 
 
-ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){ %*"\]']
+ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){%*"\ ']
 
 
 class ParseError(Exception):
