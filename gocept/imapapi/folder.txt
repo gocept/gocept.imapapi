@@ -97,20 +97,49 @@ Appending messages to folders
 To store a new message in a folder, you `append` it:
 
 >>> INBOX.append('Foo')
->>> messages = INBOX.messages.values()
->>> mail = messages[-1]
->>> mail.raw
+>>> mail = INBOX.messages.values()[-1]
+>>> raw_mail = mail.raw
+>>> raw_mail
 'Foo'
 
 
-Delete messages from folders
-============================
+Copy, move and delete messages
+==============================
+
+Messages can be copied from a folder using its `copy` attribute. You must
+supply the message and the target folder:
+
+>>> Bar = account.folders['Bar']
+>>> Bar.messages.values()
+[]
+>>> len(INBOX.messages.values())
+5
+
+Copy `mail` from the `INBOX` to the `Bar` folder:
+
+>>> INBOX.copy(mail, Bar)
+>>> len(Bar.messages.values())
+1
+>>> Bar.messages.values()[0].raw
+'Foo'
+>>> len(INBOX.messages.values())
+5
 
 To remove a message from a folder, you `delete` it:
 
->>> mail in messages
+>>> raw_mail in [mail.raw for mail in INBOX.messages.values()]
 True
 >>> INBOX.delete(mail)
->>> messages = INBOX.messages.values()
->>> mail in messages
+>>> raw_mail in [mail.raw for mail in INBOX.messages.values()]
 False
+>>> len(INBOX.messages.values())
+4
+
+Move `mail` from the `Bar` to the `INBOX` folder:
+
+>>> mail = Bar.messages.values()[0]
+>>> Bar.move(mail, INBOX)
+>>> Bar.messages.values()
+[]
+>>> raw_mail in [mail.raw for mail in INBOX.messages.values()]
+True

@@ -68,6 +68,13 @@ class Folder(object):
         self.server.uid('STORE', '%s' % message.UID, '+FLAGS', '(\\Deleted)')
         self.server.expunge()
 
+    def copy(self, message, target):
+        target.append(message.raw)
+
+    def move(self, message, target):
+        self.copy(message, target)
+        self.delete(message)
+
 
 class Folders(UserDict.DictMixin):
     """A mapping object for accessing folders located in IFolderContainers.
