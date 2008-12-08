@@ -212,6 +212,17 @@ class Message(object):
         structure = gocept.imapapi.parser.message_structure(data[0])
         return BodyPart(structure, self)
 
+    def delete(self):
+        self.server.uid('STORE', '%s' % self.UID, '+FLAGS', '(\\Deleted)')
+        self.server.expunge()
+
+    def copy(self, target):
+        target.append(self.raw)
+
+    def move(self, target):
+        self.copy(target)
+        self.delete()
+
 
 class Messages(UserDict.DictMixin):
     """A mapping object for accessing messages located in IMessageContainers.
