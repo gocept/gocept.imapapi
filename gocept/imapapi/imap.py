@@ -9,7 +9,6 @@ import logging
 
 logger = logging.getLogger('gocept.imapapi.imap')
 
-
 def callable_proxy(name, callable):
     def proxy(*args, **kw):
         logger.debug('%s(%s, %s)' % (name, args, kw))

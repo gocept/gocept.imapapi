@@ -53,13 +53,19 @@ KeyError: 'nofolder'
 Failing logins
 ==============
 
+If an unknown host is given, the account object will not be created:
+
+>>> account = Account('foo', 143, 'test', 'foo')
+Traceback (most recent call last):
+IMAPServerError: (..., 'nodename nor servname provided, or not known')
+
 If the connection can not be established, the account object will not be
-created:
+created, too:
 
 >>> account = Account('localhost', 10143, 'test', 'foo')
 Traceback (most recent call last):
-error: Authentication failed.
+IMAPConnectionError: Authentication failed.
 
 >>> account = Account('localhost', 10144, 'test', 'bsdf')
 Traceback (most recent call last):
-error: (..., 'Connection refused')
+IMAPServerError: (..., 'Connection refused')
