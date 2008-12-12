@@ -5,10 +5,15 @@
 
 import zope.interface
 
+import gocept.imapapi
 import gocept.imapapi.interfaces
 import gocept.imapapi.folder
 import gocept.imapapi.parser
 import gocept.imapapi.imap
+
+import sys
+import imaplib
+import socket
 
 
 class Account(object):
@@ -24,8 +29,17 @@ class Account(object):
         self.user = user
         self.password = password
 
-        self.server = gocept.imapapi.imap.IMAPConnection(host, port)
-        self.server.login(user, password)
+        try:
+            self.server = gocept.imapapi.imap.IMAPConnection(host, port)
+        except socket.gaierror:
+            raise gocept.imapapi.IMAPServerError(sys.exc_info()[1])
+        except socket.error:
+            raise gocept.imapapi.IMAPServerError(sys.exc_info()[1])
+
+        try:
+            self.server.login(user, password)
+        except imaplib.IMAP4.error:
+            raise gocept.imapapi.IMAPConnectionError(sys.exc_info()[1])
 
     @property
     def folders(self):
