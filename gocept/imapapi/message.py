@@ -213,7 +213,9 @@ class Message(object):
         return BodyPart(structure, self)
 
     def delete(self):
-        self.server.uid('STORE', '%s' % self.UID, '+FLAGS', '(\\Deleted)')
+        code, data = self.server.uid(
+            'STORE', '%s' % self.UID, '+FLAGS', '(\\Deleted)')
+        assert code == 'OK'
         self.server.expunge()
 
     def copy(self, target):
