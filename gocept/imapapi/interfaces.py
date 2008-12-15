@@ -39,6 +39,9 @@ class IMessage(IAccountContent):
     headers = zope.interface.Attribute(
         'A dictionary-like object providing access to the headers.')
 
+    flags = zope.interface.Attribute(
+        'A list of IMAP flags of the message.')
+
     raw = zope.interface.Attribute(
         'The raw text content of the whole message. '
         'Includes headers and body. No encoding conversions are applied. ')
