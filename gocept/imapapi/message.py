@@ -190,6 +190,12 @@ class Message(object):
         return self.name.split('-')[1]
 
     @property
+    def flags(self):
+        code, data = self.server.uid('FETCH', '%s' % self.UID, 'FLAGS')
+        assert code == 'OK'
+        return tuple(data[0].split(' FLAGS (')[1][:-2].split(' '))
+
+    @property
     def text(self):
         code, data = self.server.select(self.parent.path)
         code, data = self.server.uid('FETCH', '%s' % self.UID, '(RFC822.TEXT)')
@@ -211,6 +217,11 @@ class Message(object):
         assert code == 'OK'
         structure = gocept.imapapi.parser.message_structure(data[0])
         return BodyPart(structure, self)
+
+    def answered(self):
+        code, data = self.server.uid(
+            'STORE', '%s' % self.UID, '+FLAGS', '(\\Answered)')
+        assert code == 'OK'
 
     def delete(self):
         code, data = self.server.uid(
