@@ -193,7 +193,7 @@ class Message(object):
     def flags(self):
         code, data = self.server.uid('FETCH', '%s' % self.UID, 'FLAGS')
         assert code == 'OK'
-        flags = data[0].split(' FLAGS (')[1][:-2]
+        flags = data[0].split('FLAGS')[1].split(' (')[1].split(') ')[0]
         if flags == '':
             return ()
         return tuple(flags.split(' '))
