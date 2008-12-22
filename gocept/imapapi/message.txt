@@ -242,45 +242,34 @@ When answering a message, the answered-flag is set:
 ('\\Answered', '\\Seen')
 
 
-Copy, move and delete messages
-==============================
+Copying messages
+================
 
-First we append a testmessage:
+Messages that already exist on the IMAP server can be copied by adding the
+message object to another folder's message container.
 
->>> INBOX.append('Message-ID: Foobar@localhost\n\nFoo')
+First, create a message using a string:
+
+>>> INBOX.messages.add('Message-ID: Foobar@localhost\n\nFoo')
 >>> message = INBOX.messages.values()[-1]
 >>> print message.raw
 Message-ID: Foobar@localhost
 <BLANKLINE>
 Foo
 
-Messages can be copied to a folder using its `copy` attribute. You must
-supply the target folder:
+Then, we can use the message object for adding to another folder:
 
 >>> Bar = account.folders['Bar']
->>> Bar.messages.values()
-[]
->>> len(INBOX.messages.values())
-5
-
-Copy the message from the `INBOX` to the `Bar` folder:
-
->>> message.copy(Bar)
->>> len(Bar.messages.values())
-1
+>>> Bar.messages.add(message)
 >>> Bar.messages.values()[0].headers.get('Message-ID')
 u'Foobar@localhost'
->>> len(INBOX.messages.values())
-5
 
-To remove a message from a folder, you `delete` it:
 
->>> message.name in INBOX.messages
-True
->>> len(INBOX.messages.values())
-5
+Deleting messages
+=================
+
+Messages are deleted by removing them from their folder's messages container:
+
 >>> del INBOX.messages[message.name]
 >>> message.name in INBOX.messages
 False
->>> len(INBOX.messages.values())
-4
