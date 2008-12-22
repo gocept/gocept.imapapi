@@ -95,9 +95,11 @@ optionflags = (doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS |
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(doctest.DocFileSuite(
+        'imap.txt',
         'account.txt',
         'folder.txt',
         'message.txt',
+        'optimizations.txt',
         setUp=setUp,
         optionflags=optionflags,
         checker=checker))

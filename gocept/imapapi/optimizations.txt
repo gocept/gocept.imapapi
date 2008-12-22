@@ -1,0 +1,33 @@
+=============
+Optimizations
+=============
+
+This test demonstrates various optimizations. To see whats happening on the
+wire, we log all IMAP calls:
+
+>>> import sys
+>>> import logging
+>>> logger = logging.getLogger('gocept.imapapi.imap')
+>>> logger.addHandler(logging.StreamHandler(sys.stdout))
+>>> logger.setLevel(logging.DEBUG)
+
+
+Reducing `SELECT` commands
+==========================
+
+Selecting a folder only causes a `SELECT` command if the folder is not
+selected yet:
+
+>>> import gocept.imapapi.account
+>>> account = gocept.imapapi.account.Account(
+...     'localhost', 10143, 'test', 'bsdf')
+connect(localhost, 10143)
+login(('test', 'bsdf'), {})
+>>> account.folders['INBOX']._select()
+list(('',), {})
+select(('INBOX',), {})
+>>> account.folders['INBOX']._select()
+list(('',), {})
+>>> account.folders['Bar']._select()
+list(('',), {})
+select(('Bar',), {})

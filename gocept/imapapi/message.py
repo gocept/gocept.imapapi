@@ -8,6 +8,7 @@ import email.Parser
 import gocept.imapapi.interfaces
 import quopri
 import zope.interface
+import imaplib
 
 
 class MessageHeaders(UserDict.DictMixin):
@@ -253,16 +254,21 @@ class Messages(UserDict.DictMixin):
         container = self.container
         server = container.server
 
-        count = container._select()
+        container._select()
         uidvalidity = container._validity()
 
         uids = []
         code, data = server.status(container.path, "(UIDVALIDITY)")
-        for i in xrange(1, count+1):
-            code, data = server.fetch(str(i), '(UID)')
+        i = 1
+        while True:
+            try:
+                code, data = server.fetch(str(i), '(UID)')
+            except imaplib.IMAP4.error:
+                break
             uid = gocept.imapapi.parser.message_uid(
                 gocept.imapapi.parser.unsplit_one(data))
             uids.append(uid)
+            i += 1
         return ['%s-%s' % (uidvalidity, uid) for uid in uids]
 
     def __getitem__(self, key):
