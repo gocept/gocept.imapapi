@@ -6,9 +6,10 @@ import base64
 import email.Header
 import email.Parser
 import gocept.imapapi.interfaces
-import quopri
-import zope.interface
 import imaplib
+import quopri
+import time
+import zope.interface
 
 
 class MessageHeaders(UserDict.DictMixin):
@@ -233,9 +234,6 @@ class Message(object):
             'STORE', '%s' % self.UID, '+FLAGS', '(\\Answered)')
         assert code == 'OK'
 
-    def copy(self, target):
-        target.append(self.raw)
-
 
 class Messages(UserDict.DictMixin):
     """A mapping object for accessing messages located in IMessageContainers.
@@ -291,6 +289,14 @@ class Messages(UserDict.DictMixin):
             'STORE', uid, '+FLAGS', '(\\Deleted)')
         assert code == 'OK'
         container.server.expunge()
+
+    def add(self, message):
+        container = self.container
+        if isinstance(message, Message):
+            message = message.raw
+        # XXX Timezone handling!
+        container.server.append(
+            container.path, '', time.localtime(), message)
 
     def _split_uid(self, key):
         """Parse and verify validity and UID pair.

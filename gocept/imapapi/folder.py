@@ -2,14 +2,11 @@
 # See also LICENSE.txt
 # $Id: account.py 12226 2008-07-01 13:39:31Z thomas $
 
-import time
 import UserDict
 import email.Parser
-
-import zope.interface
-
 import gocept.imapapi.interfaces
 import gocept.imapapi.message
+import zope.interface
 
 
 class Folder(object):
@@ -59,10 +56,6 @@ class Folder(object):
     @property
     def messages(self):
         return gocept.imapapi.message.Messages(self)
-
-    def append(self, message):
-        # XXX Timezone handling!
-        self.server.append(self.path, '', time.localtime(), message)
 
     def _select(self):
         if self.server.selected_path != self.path:
