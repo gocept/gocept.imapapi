@@ -236,10 +236,6 @@ class Message(object):
     def copy(self, target):
         target.append(self.raw)
 
-    def move(self, target):
-        self.copy(target)
-        del self.parent.messages[self.name]
-
 
 class Messages(UserDict.DictMixin):
     """A mapping object for accessing messages located in IMessageContainers.
