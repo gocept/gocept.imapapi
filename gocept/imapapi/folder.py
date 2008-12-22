@@ -64,6 +64,18 @@ class Folder(object):
         # XXX Timezone handling!
         self.server.append(self.path, '', time.localtime(), message)
 
+    def _select(self):
+        code, data = self.server.select(self.path)
+        assert code == 'OK'
+        return int(data[0])
+
+    def _validity(self):
+        """Retrieve current UID validity."""
+        # XXX The UID validity value should be stored on the folder. It must
+        # be valid throughout a session.
+        code, data = self.server.status(self.path, "(UIDVALIDITY)")
+        return gocept.imapapi.parser.uidvalidity(data[0])
+
 
 class Folders(UserDict.DictMixin):
     """A mapping object for accessing folders located in IFolderContainers.
