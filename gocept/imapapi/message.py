@@ -11,6 +11,11 @@ import quopri
 import time
 import zope.interface
 
+def iterate_pairs(iterable):
+    iterable = iter(iterable)
+    while True:
+        yield iterable.next(), iterable.next()
+
 
 class MessageHeaders(UserDict.DictMixin):
     """A dictionary that performs RfC 2822 header decoding on access."""
@@ -193,17 +198,7 @@ class Message(object):
 
     @property
     def flags(self):
-        code, data = self.server.uid('FETCH', '%s' % self.UID, 'FLAGS')
-        assert code == 'OK'
-        pdata = gocept.imapapi.parser.parse(data[0])[1]
-        flags = []
-        for atom in pdata:
-            if str(atom) == 'FLAGS':
-                flags_position = pdata.index(atom) + 1
-                flags = pdata[flags_position]
-        if flags == []:
-            return ()
-        return tuple([str(flag) for flag in flags])
+        return Flags(self)
 
     @property
     def text(self):
@@ -227,12 +222,6 @@ class Message(object):
         assert code == 'OK'
         structure = gocept.imapapi.parser.message_structure(data[0])
         return BodyPart(structure, self)
-
-    def answered(self):
-        self.parent._select()
-        code, data = self.server.uid(
-            'STORE', '%s' % self.UID, '+FLAGS', '(\\Answered)')
-        assert code == 'OK'
 
 
 class Messages(UserDict.DictMixin):
@@ -281,14 +270,9 @@ class Messages(UserDict.DictMixin):
         return Message(key, container, msg)
 
     def __delitem__(self, key):
-        container = self.container
-
-        container._select()
-        uid = self._split_uid(key)
-        code, data = container.server.uid(
-            'STORE', uid, '+FLAGS', '(\\Deleted)')
-        assert code == 'OK'
-        container.server.expunge()
+        message = self[key]
+        message.flags.add('\\Deleted')
+        self.container.server.expunge()
 
     def add(self, message):
         container = self.container
@@ -311,3 +295,62 @@ class Messages(UserDict.DictMixin):
                 'Invalid UID validity %s for session with validity %s.' %
                 (validity, uidvalidity))
         return uid
+
+
+def update(func):
+    def wrapped(self, *args, **kw):
+        if self.flags is None:
+            self._update()
+        return func(self, *args, **kw)
+    return wrapped
+
+
+class Flags(object):
+
+    def __init__(self, message):
+        self.message = message
+        self.server = self.message.server
+        self.flags = None
+
+    @update
+    def __repr__(self):
+        return repr(self.flags).replace('set([', 'flags([')
+
+    @update
+    def __len__(self):
+        return len(self.flags)
+
+    @update
+    def __iter__(self):
+        return iter(self.flags)
+
+    @update
+    def __contains__(self, flag):
+        return flag in self.flags
+
+    def add(self, flag):
+        self._store(flag, '+')
+
+    def remove(self, flag):
+        self._store(flag, '-')
+
+    def _update(self, data=None):
+        if data is None:
+            code, data = self.server.uid(
+                'FETCH', '%s' % self.message.UID, 'FLAGS')
+            assert code == 'OK'
+        nz_number, attributes = gocept.imapapi.parser.parse(data[0])
+        for key, value in iterate_pairs(attributes):
+            if key == gocept.imapapi.parser.Atom('FLAGS'):
+                flags = value
+                break
+        else:
+            flags = []
+        self.flags = set(str(flag) for flag in flags)
+
+    def _store(self, flag, sign):
+        self.message.parent._select()
+        code, data = self.server.uid(
+            'STORE', '%s' % self.message.UID, '%sFLAGS' % sign, '(%s)' % flag)
+        assert code == 'OK'
+        self._update(data)
