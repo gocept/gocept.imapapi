@@ -57,7 +57,7 @@ If an unknown host is given, the account object will not be created:
 
 >>> account = Account('foo', 143, 'test', 'foo')
 Traceback (most recent call last):
-IMAPServerError: (..., 'nodename nor servname provided, or not known')
+IMAPServerError: (..., '...')
 
 If the connection can not be established, the account object will not be
 created, too:
