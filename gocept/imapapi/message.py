@@ -100,7 +100,7 @@ class BodyPart(object):
         else:
             partnumber = self['partnumber']
 
-        code, data = self.server.select(self.message.parent.path)
+        self.message.parent._select()
         code, data = self.server.uid('FETCH', '%s' % self.message.UID,
                                      '(BODY[%s])' % partnumber)
         # XXX Performance and memory optimisations here, please.
@@ -137,7 +137,7 @@ class MessagePart(object):
     def __init__(self, body):
         self.body = body.parts[0]
         parser = email.Parser.Parser()
-        code, data = body.server.select(body.message.parent.path)
+        body.message.parent._select()
         code, data = body.server.uid(
             'FETCH', '%s' % body.message.UID,
             '(BODY.PEEK[%s.HEADER])' % body['partnumber'])
@@ -148,7 +148,7 @@ class MessagePart(object):
 
     @property
     def text(self):
-        code, data = self.body.server.select(self.parent.path)
+        body.message.parent._select()
         code, data = self.body.server.uid(
             'FETCH', '%s' % self.UID,
             '(BODY[%s.TEXT])' % self.body['partnumber'])
@@ -157,7 +157,7 @@ class MessagePart(object):
 
     @property
     def raw(self):
-        code, data = self.body.server.select(self.parent.path)
+        body.message.parent._select()
         code, data = self.body.server.uid(
             'FETCH', '%s' % self.UID,
             '(BODY.PEEK[%s])' % self.body['partnumber'])
@@ -205,21 +205,21 @@ class Message(object):
 
     @property
     def text(self):
-        code, data = self.server.select(self.parent.path)
+        self.parent._select()
         code, data = self.server.uid('FETCH', '%s' % self.UID, '(RFC822.TEXT)')
         assert code == 'OK'
         return data[0][1]
 
     @property
     def raw(self):
-        code, data = self.server.select(self.parent.path)
+        self.parent._select()
         code, data = self.server.uid('FETCH', '%s' % self.UID, '(BODY.PEEK[])')
         assert code == 'OK'
         return data[0][1]
 
     @property
     def body(self):
-        code, data = self.server.select(self.parent.path)
+        self.parent._select()
         code, data = self.server.uid('FETCH', '%s' % self.UID,
                                      '(BODYSTRUCTURE)')
         assert code == 'OK'
@@ -227,29 +227,24 @@ class Message(object):
         return BodyPart(structure, self)
 
     def answered(self):
+        self.parent._select()
         code, data = self.server.uid(
             'STORE', '%s' % self.UID, '+FLAGS', '(\\Answered)')
         assert code == 'OK'
-
-    def delete(self):
-        code, data = self.server.uid(
-            'STORE', '%s' % self.UID, '+FLAGS', '(\\Deleted)')
-        assert code == 'OK'
-        self.server.expunge()
 
     def copy(self, target):
         target.append(self.raw)
 
     def move(self, target):
         self.copy(target)
-        self.delete()
+        del self.parent.messages[self.name]
 
 
 class Messages(UserDict.DictMixin):
     """A mapping object for accessing messages located in IMessageContainers.
     """
 
-    zope.interface.implements(gocept.imapapi.interfaces.IFolders)
+    zope.interface.implements(gocept.imapapi.interfaces.IMessages)
 
     def __init__(self, container):
         self.container = container
@@ -258,13 +253,8 @@ class Messages(UserDict.DictMixin):
         container = self.container
         server = container.server
 
-        code, data = server.select(container.path)
-        count = int(data[0])
-
-        # XXX The UID validity value should be stored on the folder. It must
-        # be valid throughout a session.
-        code, data = server.status(container.path, "(UIDVALIDITY)")
-        uidvalidity = gocept.imapapi.parser.uidvalidity(data[0])
+        count = container._select()
+        uidvalidity = container._validity()
 
         uids = []
         code, data = server.status(container.path, "(UIDVALIDITY)")
@@ -277,24 +267,39 @@ class Messages(UserDict.DictMixin):
 
     def __getitem__(self, key):
         container = self.container
-        server = container.server
 
-        code, data = server.select(container.path)
-
-        # XXX The UID validity value should be stored on the folder. It must
-        # be valid throughout a session.
-        code, data = server.status(container.path, "(UIDVALIDITY)")
-        uidvalidity = gocept.imapapi.parser.uidvalidity(data[0])
-
-        validity, uid = key.split('-')
-        if int(validity) != uidvalidity:
-            raise KeyError(
-                'Invalid UID validity %s for session with validity %s.' % 
-                (validity, uidvalidity))
+        container._select()
+        uid = self._split_uid(key)
 
         parser = email.Parser.Parser()
-        code, data = server.uid('FETCH', '%s' % uid, '(RFC822.HEADER)')
+        code, data = container.server.uid('FETCH', uid, '(RFC822.HEADER)')
+        if data[0] is None:
+            raise KeyError(key)
         headers = gocept.imapapi.parser.message_headers(
             gocept.imapapi.parser.unsplit_one(data))
         msg = parser.parsestr(headers, True)
         return Message(key, container, msg)
+
+    def __delitem__(self, key):
+        container = self.container
+
+        container._select()
+        uid = self._split_uid(key)
+        code, data = container.server.uid(
+            'STORE', uid, '+FLAGS', '(\\Deleted)')
+        assert code == 'OK'
+        container.server.expunge()
+
+    def _split_uid(self, key):
+        """Parse and verify validity and UID pair.
+
+        The pair must be given as a string in the form of 'validity-UID'.
+
+        """
+        uidvalidity = self.container._validity()
+        validity, uid = key.split('-')
+        if int(validity) != uidvalidity:
+            raise KeyError(
+                'Invalid UID validity %s for session with validity %s.' %
+                (validity, uidvalidity))
+        return uid

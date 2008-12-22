@@ -247,11 +247,12 @@ Copy, move and delete messages
 
 First we append a testmessage:
 
->>> INBOX.append('Foo')
->>> mail = INBOX.messages.values()[-1]
->>> raw_mail = mail.raw
->>> raw_mail
-'Foo'
+>>> INBOX.append('Message-ID: Foobar@localhost\n\nFoo')
+>>> message = INBOX.messages.values()[-1]
+>>> print message.raw
+Message-ID: Foobar@localhost
+<BLANKLINE>
+Foo
 
 Messages can be copied to a folder using its `copy` attribute. You must
 supply the target folder:
@@ -262,31 +263,34 @@ supply the target folder:
 >>> len(INBOX.messages.values())
 5
 
-Copy `mail` from the `INBOX` to the `Bar` folder:
+Copy the message from the `INBOX` to the `Bar` folder:
 
->>> mail.copy(Bar)
+>>> message.copy(Bar)
 >>> len(Bar.messages.values())
 1
->>> Bar.messages.values()[0].raw
-'Foo'
+>>> Bar.messages.values()[0].headers.get('Message-ID')
+u'Foobar@localhost'
 >>> len(INBOX.messages.values())
 5
 
 To remove a message from a folder, you `delete` it:
 
->>> raw_mail in [mail.raw for mail in INBOX.messages.values()]
+>>> message.name in INBOX.messages
 True
->>> mail.delete()
->>> raw_mail in [mail.raw for mail in INBOX.messages.values()]
+>>> len(INBOX.messages.values())
+5
+>>> del INBOX.messages[message.name]
+>>> message.name in INBOX.messages
 False
 >>> len(INBOX.messages.values())
 4
 
-Move `mail` from the `Bar` to the `INBOX` folder:
+Move the message from the `Bar` to the `INBOX` folder:
 
->>> mail = Bar.messages.values()[0]
->>> mail.move(INBOX)
+>>> message = Bar.messages.values()[0]
+>>> message.move(INBOX)
 >>> Bar.messages.values()
 []
->>> raw_mail in [mail.raw for mail in INBOX.messages.values()]
+>>> 'Foobar@localhost' in [
+...     m.headers.get('Message-ID') for m in INBOX.messages.values()]
 True
