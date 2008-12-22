@@ -65,9 +65,9 @@ class Folder(object):
         self.server.append(self.path, '', time.localtime(), message)
 
     def _select(self):
-        code, data = self.server.select(self.path)
-        assert code == 'OK'
-        return int(data[0])
+        if self.server.selected_path != self.path:
+            code, data = self.server.select(self.path)
+            assert code == 'OK'
 
     def _validity(self):
         """Retrieve current UID validity."""

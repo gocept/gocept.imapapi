@@ -1,0 +1,41 @@
+===================
+IMAP client library
+===================
+
+The imap client library implements the low-level IMAP protocol (RfC 3501) using
+Python's `imaplib` as a temporary base implementation.
+
+SELECT optimizations
+====================
+
+IMAP connection objects track the current connection's state and keep an
+attribute saying which path is currently selected.
+
+Initially, no path is selected:
+
+>>> import gocept.imapapi.imap
+>>> conn = gocept.imapapi.imap.IMAPConnection('localhost', 10143)
+>>> print conn.selected_path
+None
+
+After logging in, no path is selected either:
+
+>>> conn.login('test', 'bsdf')
+('OK', ['Logged in.'])
+>>> print conn.selected_path
+None
+
+After selecting a folder its path is memorized:
+
+>>> conn.select('INBOX')
+('OK', ['4'])
+>>> conn.selected_path
+'INBOX'
+
+Performing an operation that causes the IMAP server to loose the `SELECTED`
+state will cause the selected path to be reset:
+
+>>> conn.select('Foobar')
+('NO', ["Mailbox doesn't exist: Foobar"])
+>>> print conn.selected_path
+None
