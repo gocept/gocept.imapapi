@@ -284,13 +284,3 @@ True
 False
 >>> len(INBOX.messages.values())
 4
-
-Move the message from the `Bar` to the `INBOX` folder:
-
->>> message = Bar.messages.values()[0]
->>> message.move(INBOX)
->>> Bar.messages.values()
-[]
->>> 'Foobar@localhost' in [
-...     m.headers.get('Message-ID') for m in INBOX.messages.values()]
-True
