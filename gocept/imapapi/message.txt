@@ -230,16 +230,35 @@ Everything is ok!
 Mail flags
 ==========
 
-The flags of a message can be retrieved with the ``flags`` attribute:
+The flags of a message are accessible through the `flags` attribute, which acts
+like a set. Note that changes to the flags object propagate to the server
+immediately:
 
+>>> message.server.uid('FETCH', str(message.UID), 'FLAGS')
+('OK', ['3 (UID ... FLAGS (\\Seen))'])
 >>> message.flags
-('\\Seen',)
+flags(['\\Seen'])
 
-When answering a message, the answered-flag is set:
-
->>> message.answered()
+>>> message.flags.add(r'\Answered')
 >>> message.flags
-('\\Answered', '\\Seen')
+flags(['\\Seen', '\\Answered'])
+>>> message.server.uid('FETCH', str(message.UID), 'FLAGS')
+('OK', ['3 (UID ... FLAGS (\\Answered \\Seen))'])
+
+>>> message.flags.remove(r'\Answered')
+>>> message.flags
+flags(['\\Seen'])
+>>> message.server.uid('FETCH', str(message.UID), 'FLAGS')
+('OK', ['3 (UID ... FLAGS (\\Seen))'])
+
+>>> len(message.flags)
+1
+>>> list(message.flags)
+['\\Seen']
+>>> r'\Seen' in message.flags
+True
+>>> r'\Answered' in message.flags
+False
 
 
 Copying messages
