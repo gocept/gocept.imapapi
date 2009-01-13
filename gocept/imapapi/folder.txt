@@ -48,7 +48,7 @@ Creating folders
 ================
 
 Folders may be created as top-level folders of an account or within existing
-folders.
+folders. Let's create three nested folders starting at the top level:
 
 >>> from gocept.imapapi.folder import Folder
 >>> account.folders['Top level'] = Folder()
@@ -69,6 +69,15 @@ folders.
 'Subfolder'
 >>> subfolder.path
 'Top level/Subfolder'
+
+>>> subfolder.folders['Subsubfolder'] = subsubfolder = Folder()
+>>> subfolder.folders
+{'Subsubfolder': <gocept.imapapi.folder.Folder object
+                 'Top level/Subfolder/Subsubfolder' at 0x2132423>}
+>>> subsubfolder.name
+'Subsubfolder'
+>>> subsubfolder.path
+'Top level/Subfolder/Subsubfolder'
 
 
 Accessing messages

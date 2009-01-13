@@ -1,4 +1,4 @@
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 # $Id: account.py 12226 2008-07-01 13:39:31Z thomas $
 
@@ -81,8 +81,11 @@ class Folders(UserDict.DictMixin):
 
     def keys(self):
         result = []
-        path = self.container.path
-        code, data = self.container.server.list(path)
+        if self.container.depth:
+            path = self.container.path + self.container.separator
+        else:
+            path = ''
+        code, data = self.container.server.list('', path + '%')
         assert code == 'OK'
         for response in gocept.imapapi.parser.unsplit(data):
             if response is None:
@@ -90,11 +93,7 @@ class Folders(UserDict.DictMixin):
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
             # XXX Looping the separator this way is kind of icky.
             self.separator = sep
-            name = name.split(sep)
-            if len(name) != self.container.depth + 1:
-                # Ignore all folders that are not direct children.
-                continue
-            name = name[-1]
+            name = name.split(sep)[-1]
             result.append(name)
         result.sort()
         return result
