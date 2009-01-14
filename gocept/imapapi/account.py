@@ -1,4 +1,4 @@
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 # $Id$
 
@@ -23,14 +23,15 @@ class Account(object):
     depth = 0
     path = ''
 
-    def __init__(self, host, port, user, password):
+    def __init__(self, host, port, user, password, ssl=False):
         self.host = host
         self.port = port
         self.user = user
         self.password = password
+        self.ssl = ssl
 
         try:
-            self.server = gocept.imapapi.imap.IMAPConnection(host, port)
+            self.server = gocept.imapapi.imap.IMAPConnection(host, port, ssl)
         except socket.gaierror:
             raise gocept.imapapi.IMAPServerError(sys.exc_info()[1])
         except socket.error:

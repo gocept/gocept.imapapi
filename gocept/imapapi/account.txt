@@ -24,6 +24,8 @@ True
 'test'
 >>> account.password
 'bsdf'
+>>> account.ssl
+False
 
 
 Retrieving folder structure

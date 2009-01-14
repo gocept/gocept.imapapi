@@ -1,5 +1,5 @@
 # vim:fileencoding=utf-8
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 # $Id$
 """Wrapper for IMAP connections to allow some experiments."""
@@ -25,8 +25,11 @@ class IMAPConnection(object):
 
     _selected_path = None
 
-    def __init__(self, host, port):
-        self.server = imaplib.IMAP4(host, port)
+    def __init__(self, host, port, ssl=False):
+        if ssl:
+            self.server = imaplib.IMAP4_SSL(host, port)
+        else:
+            self.server = imaplib.IMAP4(host, port)
         logger.debug('connect(%s, %s)' % (host, port))
 
     def __getattr__(self, name):
