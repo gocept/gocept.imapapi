@@ -58,9 +58,17 @@ class Folder(object):
         return gocept.imapapi.message.Messages(self)
 
     def _select(self):
+        """Selects the folder as the current folder of the connection.
+
+        Returns the number of messages in the folder. If the folder is already
+        selected, this is a no-op and returns the previous message count.
+
+        """
         if self.server.selected_path != self.path:
             code, data = self.server.select(self.path)
             assert code == 'OK'
+            self._v_count = int(data[0])
+        return self._v_count
 
     def _validity(self):
         """Retrieve current UID validity."""
