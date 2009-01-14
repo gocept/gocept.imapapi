@@ -237,21 +237,20 @@ class Messages(UserDict.DictMixin):
         container = self.container
         server = container.server
 
-        container._select()
+        count = container._select()
         uidvalidity = container._validity()
 
-        uids = []
         code, data = server.status(container.path, "(UIDVALIDITY)")
-        i = 1
-        while True:
-            try:
-                code, data = server.fetch(str(i), '(UID)')
-            except imaplib.IMAP4.error:
-                break
-            uid = gocept.imapapi.parser.message_uid(
-                gocept.imapapi.parser.unsplit_one(data))
-            uids.append(uid)
-            i += 1
+        try:
+            code, data = server.fetch('%s:%s' % (1, count), '(UID)')
+        except imaplib.IMAP4.error:
+            # This message might have been deleted (Dovecot).
+            return []
+        if code == 'NO':
+            # This message might have been deleted (Cyrus).
+            return []
+        uids = (gocept.imapapi.parser.message_uid(line)
+                for line in gocept.imapapi.parser.unsplit(data))
         return ['%s-%s' % (uidvalidity, uid) for uid in uids]
 
     def __getitem__(self, key):
