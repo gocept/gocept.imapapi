@@ -237,6 +237,7 @@ class Messages(UserDict.DictMixin):
         return '%s-%s' % (self.container.uidvalidity, uid)
 
     def _fetch_lines(self, msg_set, spec):
+        self.container._select()
         try:
             code, data = self.container.server.fetch(msg_set, spec)
         except imaplib.IMAP4.error:
@@ -248,7 +249,6 @@ class Messages(UserDict.DictMixin):
         return gocept.imapapi.parser.unsplit(data)
 
     def keys(self):
-        self.container._select()
         lines = self._fetch_lines('%s:%s' % (1, len(self)), '(UID)')
         uids = (gocept.imapapi.parser.message_uid(line) for line in lines)
         return [self._key(uid) for uid in uids]
@@ -259,7 +259,6 @@ class Messages(UserDict.DictMixin):
         return Message(self._key(uid), self.container, msg)
 
     def values(self):
-        self.container._select()
         lines = self._fetch_lines(
             '%s:%s' % (1, len(self)), '(UID RFC822.HEADER)')
         return [self._make_message(line) for line in lines]
