@@ -148,7 +148,7 @@ class MessagePart(object):
         code, data = body.server.uid(
             'FETCH', '%s' % body.message.UID,
             '(BODY.PEEK[%s.HEADER])' % body['partnumber'])
-        headers = gocept.imapapi.parser.message_headers(
+        uid, headers = gocept.imapapi.parser.message_uid_headers(
             gocept.imapapi.parser.unsplit_one(data))
         msg = parser.parsestr(headers, True)
         self.headers = MessageHeaders(msg)
