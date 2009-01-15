@@ -88,12 +88,20 @@ class Folder(object):
             assert code == 'OK'
             self._message_count_cache = int(data[0])
 
-    def _validity(self):
-        """Retrieve current UID validity."""
-        # XXX The UID validity value should be stored on the folder. It must
-        # be valid throughout a session.
-        code, data = self.server.status(self.path, "(UIDVALIDITY)")
-        return gocept.imapapi.parser.status(data[0])['UIDVALIDITY']
+    _uidvalidity = None
+
+    @property
+    def uidvalidity(self):
+        """Retrieve the UID validity value of the folder.
+
+        This number must stay the same throughout a session.
+
+        """
+        if self._uidvalidity is None:
+            code, data = self.server.status(self.path, "(UIDVALIDITY)")
+            self._uidvalidity = (
+                gocept.imapapi.parser.status(data[0])['UIDVALIDITY'])
+        return self._uidvalidity
 
 
 class Folders(UserDict.DictMixin):
