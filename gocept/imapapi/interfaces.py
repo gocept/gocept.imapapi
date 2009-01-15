@@ -94,12 +94,6 @@ class IFolder(IFolderContainer, IMessageContainer, IAccountContent):
 
     """
 
-    def append(message):
-        """Append a message, given as a string, to the folder."""
-
-    def delete(message):
-        """Flag the given messages as deleted and expunge it."""
-
 
 class IBodyPart(zope.interface.Interface):
     """A part of a message body.
