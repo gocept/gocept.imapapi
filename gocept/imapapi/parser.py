@@ -48,12 +48,14 @@ def mailbox_list(line):
     return flags, sep, mailbox(name)
 
 
-def uidvalidity(line):
-    """Parse an IMAP `status` response to a UIDVALIDITY query.
+def status(line):
+    """Parse an IMAP `status` response.
     """
     foldername, response = parse(line)
-    assert response[0].value == 'UIDVALIDITY'
-    return number(response[1])
+    status = {}
+    while response:
+        status[str(response.pop())] = number(response.pop())
+    return status
 
 
 def message_uid(data):
