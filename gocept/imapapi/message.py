@@ -233,20 +233,23 @@ class Messages(UserDict.DictMixin):
     def __init__(self, container):
         self.container = container
 
+    def __len__(self):
+        return self.container.message_count
+
     def keys(self):
         container = self.container
         server = container.server
 
-        count = container._select()
+        container._select()
         uidvalidity = container._validity()
 
         try:
-            code, data = server.fetch('%s:%s' % (1, count), '(UID)')
+            code, data = server.fetch('%s:%s' % (1, len(self)), '(UID)')
         except imaplib.IMAP4.error:
-            # This message might have been deleted (Dovecot).
+            # Messages might have been deleted (Dovecot).
             return []
         if code == 'NO':
-            # This message might have been deleted (Cyrus).
+            # Messages might have been deleted (Cyrus).
             return []
         uids = (gocept.imapapi.parser.message_uid(line)
                 for line in gocept.imapapi.parser.unsplit(data))
@@ -268,18 +271,27 @@ class Messages(UserDict.DictMixin):
         return Message(key, container, msg)
 
     def __delitem__(self, key):
+        # XXX This method should not access the message count cache of its
+        # container directly. Ideally, it should not even have to care about
+        # the message count; this is what EXPUNGE responses are for.
         message = self[key]
         message.flags.add('\\Deleted')
         self.container._select()
         self.container.server.expunge()
+        self.container._message_count_cache -= 1
 
     def add(self, message):
+        # XXX This method should not access the message count cache of its
+        # container directly. Ideally, it should not even have to care about
+        # the message count; this is what EXISTS responses are for.
         container = self.container
         if isinstance(message, Message):
             message = message.raw
         # XXX Timezone handling!
         container.server.append(
             container.path, '', time.localtime(), message)
+        if self.container._message_count_cache is not None:
+            self.container._message_count_cache += 1
 
     def _split_uid(self, key):
         """Parse and verify validity and UID pair.

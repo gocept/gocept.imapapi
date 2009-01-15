@@ -6,6 +6,7 @@ import UserDict
 import email.Parser
 import gocept.imapapi.interfaces
 import gocept.imapapi.message
+import gocept.imapapi.parser
 import zope.interface
 
 
@@ -57,25 +58,42 @@ class Folder(object):
     def messages(self):
         return gocept.imapapi.message.Messages(self)
 
+    _message_count_cache = None
+
+    @property
+    def message_count(self):
+        """Returns the number of messages in the folder.
+
+        The number is cached during the transaction. Since RfC 3501 states
+        that the STATUS command should not be used on the currently selected
+        mail box, the same value will be set when selecting the folder.
+
+        """
+        if self._message_count_cache is None:
+            code, data = self.server.status(self.path, "(MESSAGES)")
+            assert code == 'OK'
+            self._message_count_cache = (
+                gocept.imapapi.parser.status(data[0])['MESSAGES'])
+        return self._message_count_cache
+
     def _select(self):
         """Selects the folder as the current folder of the connection.
 
-        Returns the number of messages in the folder. If the folder is already
-        selected, this is a no-op and returns the previous message count.
+        Caches the number of messages in the folder. If the folder is already
+        selected, this is a no-op.
 
         """
         if self.server.selected_path != self.path:
             code, data = self.server.select(self.path)
             assert code == 'OK'
-            self._v_count = int(data[0])
-        return self._v_count
+            self._message_count_cache = int(data[0])
 
     def _validity(self):
         """Retrieve current UID validity."""
         # XXX The UID validity value should be stored on the folder. It must
         # be valid throughout a session.
         code, data = self.server.status(self.path, "(UIDVALIDITY)")
-        return gocept.imapapi.parser.uidvalidity(data[0])
+        return gocept.imapapi.parser.status(data[0])['UIDVALIDITY']
 
 
 class Folders(UserDict.DictMixin):
