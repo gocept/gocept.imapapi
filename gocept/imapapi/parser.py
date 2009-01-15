@@ -66,11 +66,11 @@ def message_uid(data):
     return uid
 
 
-def message_headers(data):
+def message_uid_headers(data):
     """Parse an IMAP `UID FETCH` response for RFC822.HEADER.
     """
     items = parse(data)
-    return items[1][3]
+    return items[1][1], items[1][3]
 
 
 def _parse_structure(structure, path):

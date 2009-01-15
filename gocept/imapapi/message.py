@@ -236,37 +236,50 @@ class Messages(UserDict.DictMixin):
     def __len__(self):
         return self.container.message_count
 
-    def keys(self):
-        container = self.container
-        server = container.server
+    def _key(self, uid):
+        return '%s-%s' % (self.container.uidvalidity, uid)
 
-        container._select()
+    def _fetch_lines(self, msg_set, spec):
         try:
-            code, data = server.fetch('%s:%s' % (1, len(self)), '(UID)')
+            code, data = self.container.server.fetch(msg_set, spec)
         except imaplib.IMAP4.error:
             # Messages might have been deleted (Dovecot).
             return []
         if code == 'NO':
             # Messages might have been deleted (Cyrus).
             return []
-        uids = (gocept.imapapi.parser.message_uid(line)
-                for line in gocept.imapapi.parser.unsplit(data))
-        return ['%s-%s' % (self.container.uidvalidity, uid) for uid in uids]
+        return gocept.imapapi.parser.unsplit(data)
+
+    def keys(self):
+        self.container._select()
+        lines = self._fetch_lines('%s:%s' % (1, len(self)), '(UID)')
+        uids = (gocept.imapapi.parser.message_uid(line) for line in lines)
+        return [self._key(uid) for uid in uids]
+
+    _parser = None
+
+    def _make_message(self, line):
+        if self._parser is None:
+            self._parser = email.Parser.Parser()
+        uid, headers = gocept.imapapi.parser.message_uid_headers(line)
+        msg = self._parser.parsestr(headers, True)
+        return Message(self._key(uid), self.container, msg)
+
+    def values(self):
+        self.container._select()
+        lines = self._fetch_lines(
+            '%s:%s' % (1, len(self)), '(UID RFC822.HEADER)')
+        return [self._make_message(line) for line in lines]
 
     def __getitem__(self, key):
-        container = self.container
-
-        container._select()
+        self.container._select()
         uid = self._split_uid(key)
-
-        parser = email.Parser.Parser()
-        code, data = container.server.uid('FETCH', uid, '(RFC822.HEADER)')
+        code, data = self.container.server.uid(
+            'FETCH', uid, '(RFC822.HEADER)')
         if data[0] is None:
             raise KeyError(key)
-        headers = gocept.imapapi.parser.message_headers(
-            gocept.imapapi.parser.unsplit_one(data))
-        msg = parser.parsestr(headers, True)
-        return Message(key, container, msg)
+        line = gocept.imapapi.parser.unsplit_one(data)
+        return self._make_message(line)
 
     def __delitem__(self, key):
         # XXX This method should not access the message count cache of its
