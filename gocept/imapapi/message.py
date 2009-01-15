@@ -241,8 +241,6 @@ class Messages(UserDict.DictMixin):
         server = container.server
 
         container._select()
-        uidvalidity = container._validity()
-
         try:
             code, data = server.fetch('%s:%s' % (1, len(self)), '(UID)')
         except imaplib.IMAP4.error:
@@ -253,7 +251,7 @@ class Messages(UserDict.DictMixin):
             return []
         uids = (gocept.imapapi.parser.message_uid(line)
                 for line in gocept.imapapi.parser.unsplit(data))
-        return ['%s-%s' % (uidvalidity, uid) for uid in uids]
+        return ['%s-%s' % (self.container.uidvalidity, uid) for uid in uids]
 
     def __getitem__(self, key):
         container = self.container
@@ -299,12 +297,11 @@ class Messages(UserDict.DictMixin):
         The pair must be given as a string in the form of 'validity-UID'.
 
         """
-        uidvalidity = self.container._validity()
         validity, uid = key.split('-')
-        if int(validity) != uidvalidity:
+        if int(validity) != self.container.uidvalidity:
             raise KeyError(
                 'Invalid UID validity %s for session with validity %s.' %
-                (validity, uidvalidity))
+                (validity, self.container.uidvalidity))
         return uid
 
 
