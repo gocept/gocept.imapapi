@@ -1,8 +1,14 @@
 # vim:fileencoding=utf-8
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 # $Id$
 """Parsing IMAP responses."""
+
+
+def iterate_pairs(iterable):
+    iterable = iter(iterable)
+    while True:
+        yield iterable.next(), iterable.next()
 
 
 def unsplit(items):
@@ -53,8 +59,8 @@ def status(line):
     """
     foldername, response = parse(line)
     status = {}
-    while response:
-        status[str(response.pop())] = number(response.pop())
+    for key, value in iterate_pairs(response):
+        status[str(key)] = number(value)
     return status
 
 
@@ -71,6 +77,15 @@ def message_uid_headers(data):
     """
     items = parse(data)
     return items[1][1], items[1][3]
+
+
+def message_flags(data):
+    _, attributes = parse(data[0])
+    for key, value in iterate_pairs(attributes):
+        if key == Atom('FLAGS'):
+            return set(str(flag) for flag in value)
+    else:
+        return set()
 
 
 def _parse_structure(structure, path):
@@ -109,8 +124,8 @@ def _parse_nonmultipart(element, path):
     data['content_type'] = '%s/%s' % (element[0].lower(), element[1].lower())
     data['parameters'] = {}
     if isinstance(element[2], list):
-        while element[2]:
-            data['parameters'][element[2].pop().lower()] = element[2].pop()
+        for key, value in iterate_pairs(element[2]):
+            data['parameters'][key.lower()] = value
     data['id'] = nstring(element[3])
     data['description'] = nstring(element[4])
     data['encoding'] = element[5].lower()
