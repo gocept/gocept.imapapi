@@ -76,7 +76,7 @@ def message_uid_headers(data):
     """Parse an IMAP `UID FETCH` response for RFC822.HEADER.
     """
     items = parse(data)
-    return items[1][1], items[1][3]
+    return number(items[1][1]), items[1][3]
 
 
 def message_flags(data):
