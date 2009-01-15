@@ -88,6 +88,30 @@ def message_flags(data):
         return set()
 
 
+def message_uid_envelope(data):
+    response = parse(data)[1]
+    uid, envelope = response[1], response[3]
+    envelope = dict(zip(['date', 'subject', 'from', 'sender', 'reply-to',
+                         'to', 'cc', 'bcc', 'in-reply-to', 'message-id'],
+                        envelope))
+    for key, value in envelope.iteritems():
+        if value == NIL:
+            envelope[key] = u''
+        elif isinstance(value, str):
+            pass
+        elif isinstance(value, list):
+            # XXX handle RfC2822-style address groups
+            addresses = []
+            for item in value:
+                name, path, mailbox, host = item
+                if name == NIL:
+                    addresses.append('%s@%s' % (mailbox, host))
+                else:
+                    addresses.append('%s <%s@%s>' % (name, mailbox, host))
+            envelope[key] = ', '.join(addresses)
+    return number(uid), envelope
+
+
 def _parse_structure(structure, path):
     if structure[:2] == ['message', 'rfc822']:
         return _parse_message_rfc822(structure, path)
@@ -579,3 +603,6 @@ def number(value):
         return int(value.value)
     except (AttributeError, ValueError):
         raise ValueError('%r cannot be read as a number.' % value)
+
+
+NIL = Atom('NIL')
