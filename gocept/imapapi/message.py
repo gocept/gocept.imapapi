@@ -6,6 +6,7 @@ import base64
 import email.Header
 import email.Parser
 import gocept.imapapi.interfaces
+import gocept.imapapi.parser
 import imaplib
 import quopri
 import time
@@ -18,14 +19,21 @@ parser = email.Parser.Parser()
 class MessageHeaders(UserDict.DictMixin):
     """A dictionary that performs RfC 2822 header decoding on access."""
 
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, message=None, envelope=None, headers=None):
+        self.message = message
+        self.envelope = envelope or {}
+        self.headers = headers
 
     def __getitem__(self, key):
+        # try to get along without fetching the headers
+        try:
+            value = self.envelope[key.lower()]
+        except KeyError:
+            self.fetch_headers()
+            value = self.headers[key]
+        if value is None:
+            return u''
         result = u''
-        if not key in self.data:
-            raise KeyError(key)
-        value = self.data[key]
         decoded = email.Header.decode_header(value)
         for text, charset in decoded:
             if charset is None:
@@ -38,7 +46,19 @@ class MessageHeaders(UserDict.DictMixin):
         return result
 
     def keys(self):
-        return self.data.keys()
+        self.fetch_headers()
+        return self.headers.keys()
+
+    def fetch_headers(self):
+        if self.headers is not None:
+            return
+        self.message.parent._select()
+        code, data = self.message.parent.server.uid(
+            'FETCH', self.message.UID, '(BODY.PEEK[HEADER])')
+        assert code == 'OK'
+        line = gocept.imapapi.parser.unsplit_one(data)
+        uid, header_lines = gocept.imapapi.parser.message_uid_headers(line)
+        self.headers = parser.parsestr(header_lines, True)
 
 
 class BodyPart(object):
@@ -142,13 +162,14 @@ class MessagePart(object):
     def __init__(self, body):
         self.body = body.parts[0]
         body.message.parent._select()
+        # XXX use envelope data from bodystructure response
         code, data = body.server.uid(
             'FETCH', '%s' % body.message.UID,
             '(BODY.PEEK[%s.HEADER])' % body['partnumber'])
         uid, headers = gocept.imapapi.parser.message_uid_headers(
             gocept.imapapi.parser.unsplit_one(data))
         msg = parser.parsestr(headers, True)
-        self.headers = MessageHeaders(msg)
+        self.headers = MessageHeaders(headers=msg)
 
     @property
     def text(self):
@@ -175,8 +196,8 @@ class Message(object):
 
     __allow_access_to_unprotected_subobjects__ = True
 
-    def __init__(self, name, parent, headers):
-        self.headers = MessageHeaders(headers)
+    def __init__(self, name, parent, envelope):
+        self.headers = MessageHeaders(message=self, envelope=envelope)
         self.name = name
         self.parent = parent
 
@@ -254,20 +275,18 @@ class Messages(UserDict.DictMixin):
         return [self._key(uid) for uid in uids]
 
     def _make_message(self, line):
-        uid, headers = gocept.imapapi.parser.message_uid_headers(line)
-        msg = parser.parsestr(headers, True)
-        return Message(self._key(uid), self.container, msg)
+        uid, envelope = gocept.imapapi.parser.message_uid_envelope(line)
+        return Message(self._key(uid), self.container, envelope)
 
     def values(self):
         lines = self._fetch_lines(
-            '%s:%s' % (1, len(self)), '(UID RFC822.HEADER)')
+            '%s:%s' % (1, len(self)), '(UID ENVELOPE)')
         return [self._make_message(line) for line in lines]
 
     def __getitem__(self, key):
         self.container._select()
         uid = self._split_uid(key)
-        code, data = self.container.server.uid(
-            'FETCH', uid, '(RFC822.HEADER)')
+        code, data = self.container.server.uid('FETCH', uid, '(ENVELOPE)')
         if data[0] is None:
             raise KeyError(key)
         line = gocept.imapapi.parser.unsplit_one(data)
