@@ -1,4 +1,4 @@
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
 import UserDict
@@ -10,11 +10,6 @@ import imaplib
 import quopri
 import time
 import zope.interface
-
-def iterate_pairs(iterable):
-    iterable = iter(iterable)
-    while True:
-        yield iterable.next(), iterable.next()
 
 
 class MessageHeaders(UserDict.DictMixin):
@@ -360,14 +355,7 @@ class Flags(object):
             code, data = self.server.uid(
                 'FETCH', '%s' % self.message.UID, 'FLAGS')
             assert code == 'OK'
-        nz_number, attributes = gocept.imapapi.parser.parse(data[0])
-        for key, value in iterate_pairs(attributes):
-            if key == gocept.imapapi.parser.Atom('FLAGS'):
-                flags = value
-                break
-        else:
-            flags = []
-        self.flags = set(str(flag) for flag in flags)
+        self.flags = gocept.imapapi.parser.message_flags(data)
 
     def _store(self, flag, sign):
         self.message.parent._select()
