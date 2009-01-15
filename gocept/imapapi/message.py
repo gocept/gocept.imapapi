@@ -240,7 +240,6 @@ class Messages(UserDict.DictMixin):
         count = container._select()
         uidvalidity = container._validity()
 
-        code, data = server.status(container.path, "(UIDVALIDITY)")
         try:
             code, data = server.fetch('%s:%s' % (1, count), '(UID)')
         except imaplib.IMAP4.error:
@@ -271,6 +270,7 @@ class Messages(UserDict.DictMixin):
     def __delitem__(self, key):
         message = self[key]
         message.flags.add('\\Deleted')
+        self.container._select()
         self.container.server.expunge()
 
     def add(self, message):
