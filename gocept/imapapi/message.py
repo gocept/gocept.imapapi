@@ -12,6 +12,9 @@ import time
 import zope.interface
 
 
+parser = email.Parser.Parser()
+
+
 class MessageHeaders(UserDict.DictMixin):
     """A dictionary that performs RfC 2822 header decoding on access."""
 
@@ -138,7 +141,6 @@ class MessagePart(object):
 
     def __init__(self, body):
         self.body = body.parts[0]
-        parser = email.Parser.Parser()
         body.message.parent._select()
         code, data = body.server.uid(
             'FETCH', '%s' % body.message.UID,
@@ -251,13 +253,9 @@ class Messages(UserDict.DictMixin):
         uids = (gocept.imapapi.parser.message_uid(line) for line in lines)
         return [self._key(uid) for uid in uids]
 
-    _parser = None
-
     def _make_message(self, line):
-        if self._parser is None:
-            self._parser = email.Parser.Parser()
         uid, headers = gocept.imapapi.parser.message_uid_headers(line)
-        msg = self._parser.parsestr(headers, True)
+        msg = parser.parsestr(headers, True)
         return Message(self._key(uid), self.container, msg)
 
     def values(self):
