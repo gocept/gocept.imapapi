@@ -131,6 +131,10 @@ def _parse_multipart(element, path):
         data['parts'].append(_parse_structure(subelement, sub_path_prefix + str(sub_number)))
 
     data['content_type'] = 'multipart/%s' % subelement.lower()
+    if element:
+        data['parameters'] = {}
+        for key, value in iterate_pairs(element.pop(0)):
+            data['parameters'][key.lower()] = value
     data['partnumber'] = path
     return data
 
