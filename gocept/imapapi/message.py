@@ -54,8 +54,7 @@ class MessageHeaders(UserDict.DictMixin):
         code, data = self.message.parent.server.uid(
             'FETCH', self.message.UID, '(BODY.PEEK[HEADER])')
         assert code == 'OK'
-        line = gocept.imapapi.parser.unsplit_one(data)
-        uid, header_lines = gocept.imapapi.parser.message_uid_headers(line)
+        header_lines = gocept.imapapi.parser.fetch(data)['BODY[HEADER]']
         self.headers = parser.parsestr(header_lines, True)
 
 
@@ -126,11 +125,12 @@ class BodyPart(object):
         self.message.parent._select()
         code, data = self.server.uid('FETCH', '%s' % self.message.UID,
                                      '(BODY[%s])' % partnumber)
+        assert code == 'OK'
         # XXX Performance and memory optimisations here, please.
-        body = data[0][1]
+        body = gocept.imapapi.parser.fetch(data)['BODY[%s]' % partnumber]
         transfer_enc = self.get('encoding')
         if transfer_enc == 'quoted-printable':
-            body = body.decode('quopri'
+            body = body.decode('quopri')
         elif transfer_enc == 'base64':
             body = body.decode('base64')
         return body
@@ -228,7 +228,7 @@ class Message(object):
         code, data = self.server.uid('FETCH', '%s' % self.UID,
                                      '(BODYSTRUCTURE)')
         assert code == 'OK'
-        structure = gocept.imapapi.parser.message_structure(data[0])
+        structure = gocept.imapapi.parser.fetch(data)['BODYSTRUCTURE']
         return BodyPart(structure, self)
 
 
@@ -261,12 +261,13 @@ class Messages(UserDict.DictMixin):
 
     def keys(self):
         lines = self._fetch_lines('%s:%s' % (1, len(self)), '(UID)')
-        uids = (gocept.imapapi.parser.message_uid(line) for line in lines)
+        uids = (gocept.imapapi.parser.fetch(line)['UID'] for line in lines)
         return [self._key(uid) for uid in uids]
 
     def _make_message(self, line):
-        uid, envelope = gocept.imapapi.parser.message_uid_envelope(line)
-        return Message(self._key(uid), self.container, envelope)
+        data = gocept.imapapi.parser.fetch(line)
+        return Message(
+            self._key(data['UID']), self.container, data['ENVELOPE'])
 
     def values(self):
         lines = self._fetch_lines(
@@ -279,8 +280,7 @@ class Messages(UserDict.DictMixin):
         code, data = self.container.server.uid('FETCH', uid, '(ENVELOPE)')
         if data[0] is None:
             raise KeyError(key)
-        line = gocept.imapapi.parser.unsplit_one(data)
-        return self._make_message(line)
+        return self._make_message(data)
 
     def __delitem__(self, key):
         # XXX This method should not access the message count cache of its
@@ -361,7 +361,7 @@ class Flags(object):
             code, data = self.server.uid(
                 'FETCH', '%s' % self.message.UID, 'FLAGS')
             assert code == 'OK'
-        self.flags = gocept.imapapi.parser.message_flags(data)
+        self.flags = gocept.imapapi.parser.fetch(data).get('FLAGS') or set()
 
     def _store(self, flag, sign):
         self.message.parent._select()

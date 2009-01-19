@@ -11,6 +11,14 @@ def iterate_pairs(iterable):
         yield iterable.next(), iterable.next()
 
 
+def dict_from_sequence(sequence):
+    result = {}
+    for key, value in iterate_pairs(sequence):
+        assert type(key) == Atom
+        result[str(key)] = value
+    return result
+
+
 def unsplit(items):
     """Restore the raw IMAP response from what imaplib server commands return.
 
@@ -25,15 +33,6 @@ def unsplit(items):
             yield line + item
             line = ''
     assert not line
-
-
-def unsplit_one(items):
-    """Convinience function that directly returns the first IMAP response line
-    restored from an imaplib server response.
-
-    """
-    for line in unsplit(items):
-        return line
 
 
 def mailbox_list(line):
@@ -64,28 +63,22 @@ def status(line):
     return status
 
 
-def message_uid(data):
-    """Parse an IMAP `fetch` response for UID.
+def fetch(line):
+    """Parse an IMAP `fetch` response.
     """
-    items = parse(data)
-    uid = number(items[1][1])
-    return uid
-
-
-def message_uid_headers(data):
-    """Parse an IMAP `UID FETCH` response for RFC822.HEADER.
-    """
-    items = parse(data)
-    return number(items[1][1]), items[1][3]
-
-
-def message_flags(data):
-    _, attributes = parse(data[0])
-    for key, value in iterate_pairs(attributes):
-        if key == Atom('FLAGS'):
-            return set(str(flag) for flag in value)
-    else:
-        return set()
+    if not isinstance(line, basestring):
+        line = unsplit(line).next()
+    msg_number, response = parse(line)
+    data = dict_from_sequence(response)
+    if 'UID' in data:
+        data['UID'] = number(data['UID'])
+    if 'ENVELOPE' in data:
+        data['ENVELOPE'] = _parse_envelope(data['ENVELOPE'])
+    if 'BODYSTRUCTURE' in data:
+        data['BODYSTRUCTURE'] = _parse_structure(data['BODYSTRUCTURE'], '')
+    if 'FLAGS' in data:
+        data['FLAGS'] = set(str(flag) for flag in data['FLAGS'])
+    return data
 
 
 def _parse_envelope(envelope):
@@ -108,12 +101,6 @@ def _parse_envelope(envelope):
                     addresses.append('%s <%s@%s>' % (name, mailbox, host))
             envelope[key] = ', '.join(addresses)
     return envelope
-
-
-def message_uid_envelope(data):
-    response = parse(data)[1]
-    uid, envelope = response[1], response[3]
-    return number(uid), _parse_envelope(envelope)
 
 
 def _parse_structure(structure, path):
@@ -166,15 +153,6 @@ def _parse_message_rfc822(element, path):
     data['envelope'] = _parse_envelope(element[7])
     data['parts'] = [_parse_structure(element[8], path)]
     return data
-
-def message_structure(data):
-    """Parse an IMAP `fetch` response for BODYSTRUCTURE.
-    """
-    items = parse(data)
-    assert len(items) == 2
-    structure = items[1][3]
-    structure = _parse_structure(structure, '')
-    return structure
 
 
 ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){%*"\ ']
