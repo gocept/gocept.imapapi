@@ -2,13 +2,11 @@
 # See also LICENSE.txt
 
 import UserDict
-import base64
 import email.Header
 import email.Parser
 import gocept.imapapi.interfaces
 import gocept.imapapi.parser
 import imaplib
-import quopri
 import time
 import zope.interface
 
@@ -129,13 +127,13 @@ class BodyPart(object):
         code, data = self.server.uid('FETCH', '%s' % self.message.UID,
                                      '(BODY[%s])' % partnumber)
         # XXX Performance and memory optimisations here, please.
-        data = data[0][1]
+        body = data[0][1]
         transfer_enc = self.get('encoding')
         if transfer_enc == 'quoted-printable':
-            data = quopri.decodestring(data)
+            body = body.decode('quopri'
         elif transfer_enc == 'base64':
-            data = base64.b64decode(data)
-        return data
+            body = body.decode('base64')
+        return body
 
     def by_cid(self, cid):
         """Return a sub-part by its Content-ID header."""
