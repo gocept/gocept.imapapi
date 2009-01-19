@@ -50,11 +50,8 @@ class MessageHeaders(UserDict.DictMixin):
     def fetch_headers(self):
         if self.headers is not None:
             return
-        self.message.parent._select()
-        code, data = self.message.parent.server.uid(
-            'FETCH', self.message.UID, '(BODY.PEEK[HEADER])')
-        assert code == 'OK'
-        header_lines = gocept.imapapi.parser.fetch(data)['BODY[HEADER]']
+        header_lines = _fetch(self.message.server, self.message.parent,
+                              self.message.UID, 'BODY.PEEK[HEADER]')
         self.headers = parser.parsestr(header_lines, True)
 
 
@@ -122,12 +119,9 @@ class BodyPart(object):
         else:
             partnumber = self['partnumber']
 
-        self.message.parent._select()
-        code, data = self.server.uid('FETCH', '%s' % self.message.UID,
-                                     '(BODY[%s])' % partnumber)
-        assert code == 'OK'
         # XXX Performance and memory optimisations here, please.
-        body = gocept.imapapi.parser.fetch(data)['BODY[%s]' % partnumber]
+        body = _fetch(self.server, self.message.parent, self.message.UID,
+                      'BODY[%s]' % partnumber)
         transfer_enc = self.get('encoding')
         if transfer_enc == 'quoted-printable':
             body = body.decode('quopri')
@@ -163,21 +157,13 @@ class MessagePart(object):
 
     @property
     def text(self):
-        body.message.parent._select()
-        code, data = self.body.server.uid(
-            'FETCH', '%s' % self.UID,
-            '(BODY[%s.TEXT])' % self.body['partnumber'])
-        assert code == 'OK'
-        return data[0][1]
+        return _fetch(self.body.server, self.body.message.parent, self.UID,
+                      'BODY[%s.TEXT]' % self.body['partnumber'])
 
     @property
     def raw(self):
-        body.message.parent._select()
-        code, data = self.body.server.uid(
-            'FETCH', '%s' % self.UID,
-            '(BODY.PEEK[%s])' % self.body['partnumber'])
-        assert code == 'OK'
-        return data[0][1]
+        return _fetch(self.body.server, self.body.message.parent, self.UID,
+                      'BODY.PEEK[%s]' % self.body['partnumber'])
 
 
 class Message(object):
@@ -210,25 +196,16 @@ class Message(object):
 
     @property
     def text(self):
-        self.parent._select()
-        code, data = self.server.uid('FETCH', '%s' % self.UID, '(BODY[TEXT])')
-        assert code == 'OK'
-        return gocept.imapapi.parser.fetch(data)['BODY[TEXT]']
+        return _fetch(self.server, self.parent, self.UID, 'BODY[TEXT]')
 
     @property
     def raw(self):
-        self.parent._select()
-        code, data = self.server.uid('FETCH', '%s' % self.UID, '(BODY.PEEK[])')
-        assert code == 'OK'
-        return gocept.imapapi.parser.fetch(data)['BODY[]']
+        return _fetch(self.server, self.parent, self.UID, 'BODY.PEEK[]')
 
     @property
     def body(self):
-        self.parent._select()
-        code, data = self.server.uid('FETCH', '%s' % self.UID,
-                                     '(BODYSTRUCTURE)')
-        assert code == 'OK'
-        structure = gocept.imapapi.parser.fetch(data)['BODYSTRUCTURE']
+        structure = _fetch(
+            self.server, self.parent, self.UID, 'BODYSTRUCTURE')
         return BodyPart(structure, self)
 
 
@@ -358,8 +335,7 @@ class Flags(object):
 
     def _update(self, data=None):
         if data is None:
-            code, data = self.server.uid(
-                'FETCH', '%s' % self.message.UID, 'FLAGS')
+            code, data = self.server.uid('FETCH', self.message.UID, 'FLAGS')
             assert code == 'OK'
         self.flags = gocept.imapapi.parser.fetch(data)['FLAGS']
 
@@ -369,3 +345,14 @@ class Flags(object):
             'STORE', '%s' % self.message.UID, '%sFLAGS' % sign, '(%s)' % flag)
         assert code == 'OK'
         self._update(data)
+
+
+def _fetch(server, mailbox, msg_uid, item):
+    # XXX This should definitely be a method of some appropriate class, but
+    # such a refactoring will probably only make sense after messages and body
+    # parts have been unified.
+    mailbox._select()
+    code, data = server.uid('FETCH', msg_uid, '(%s)' % item)
+    assert code == 'OK'
+    data = gocept.imapapi.parser.fetch(data)
+    return data[item.replace('.PEEK', '')]
