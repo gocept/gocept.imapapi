@@ -211,16 +211,16 @@ class Message(object):
     @property
     def text(self):
         self.parent._select()
-        code, data = self.server.uid('FETCH', '%s' % self.UID, '(RFC822.TEXT)')
+        code, data = self.server.uid('FETCH', '%s' % self.UID, '(BODY[TEXT])')
         assert code == 'OK'
-        return data[0][1]
+        return gocept.imapapi.parser.fetch(data)['BODY[TEXT]']
 
     @property
     def raw(self):
         self.parent._select()
         code, data = self.server.uid('FETCH', '%s' % self.UID, '(BODY.PEEK[])')
         assert code == 'OK'
-        return data[0][1]
+        return gocept.imapapi.parser.fetch(data)['BODY[]']
 
     @property
     def body(self):
@@ -361,7 +361,7 @@ class Flags(object):
             code, data = self.server.uid(
                 'FETCH', '%s' % self.message.UID, 'FLAGS')
             assert code == 'OK'
-        self.flags = gocept.imapapi.parser.fetch(data).get('FLAGS') or set()
+        self.flags = gocept.imapapi.parser.fetch(data)['FLAGS']
 
     def _store(self, flag, sign):
         self.message.parent._select()
