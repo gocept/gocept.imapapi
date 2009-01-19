@@ -88,9 +88,7 @@ def message_flags(data):
         return set()
 
 
-def message_uid_envelope(data):
-    response = parse(data)[1]
-    uid, envelope = response[1], response[3]
+def _parse_envelope(envelope):
     envelope = dict(zip(['date', 'subject', 'from', 'sender', 'reply-to',
                          'to', 'cc', 'bcc', 'in-reply-to', 'message-id'],
                         envelope))
@@ -109,7 +107,13 @@ def message_uid_envelope(data):
                 else:
                     addresses.append('%s <%s@%s>' % (name, mailbox, host))
             envelope[key] = ', '.join(addresses)
-    return number(uid), envelope
+    return envelope
+
+
+def message_uid_envelope(data):
+    response = parse(data)[1]
+    uid, envelope = response[1], response[3]
+    return number(uid), _parse_envelope(envelope)
 
 
 def _parse_structure(structure, path):
@@ -159,6 +163,7 @@ def _parse_nonmultipart(element, path):
 
 def _parse_message_rfc822(element, path):
     data = _parse_nonmultipart(element, path)
+    data['envelope'] = _parse_envelope(element[7])
     data['parts'] = [_parse_structure(element[8], path)]
     return data
 
