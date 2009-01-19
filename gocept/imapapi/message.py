@@ -19,10 +19,10 @@ parser = email.Parser.Parser()
 class MessageHeaders(UserDict.DictMixin):
     """A dictionary that performs RfC 2822 header decoding on access."""
 
-    def __init__(self, message=None, envelope=None, headers=None):
+    def __init__(self, message, envelope):
         self.message = message
-        self.envelope = envelope or {}
-        self.headers = headers
+        self.envelope = envelope
+        self.headers = None
 
     def __getitem__(self, key):
         # try to get along without fetching the headers
@@ -160,16 +160,8 @@ class MessagePart(object):
     zope.interface.implements(gocept.imapapi.interfaces.IMessage)
 
     def __init__(self, body):
+        self.headers = MessageHeaders(body.message, body['envelope'])
         self.body = body.parts[0]
-        body.message.parent._select()
-        # XXX use envelope data from bodystructure response
-        code, data = body.server.uid(
-            'FETCH', '%s' % body.message.UID,
-            '(BODY.PEEK[%s.HEADER])' % body['partnumber'])
-        uid, headers = gocept.imapapi.parser.message_uid_headers(
-            gocept.imapapi.parser.unsplit_one(data))
-        msg = parser.parsestr(headers, True)
-        self.headers = MessageHeaders(headers=msg)
 
     @property
     def text(self):
@@ -197,7 +189,7 @@ class Message(object):
     __allow_access_to_unprotected_subobjects__ = True
 
     def __init__(self, name, parent, envelope):
-        self.headers = MessageHeaders(message=self, envelope=envelope)
+        self.headers = MessageHeaders(self, envelope)
         self.name = name
         self.parent = parent
 
