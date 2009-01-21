@@ -202,11 +202,18 @@ class Message(object):
     def raw(self):
         return _fetch(self.server, self.parent, self.UID, 'BODY.PEEK[]')
 
+    _bodystructure = None
+
     @property
     def body(self):
-        structure = _fetch(
-            self.server, self.parent, self.UID, 'BODYSTRUCTURE')
-        return BodyPart(structure, self)
+        if self._bodystructure is None:
+            # We may safely cache the body structure as RfC 3501 asserts that
+            # this information must not change for any particular message. We
+            # can afford to do so since the size of body structure data does
+            # not depend on the size of message text or attachedments.
+            self._bodystructure = _fetch(
+                self.server, self.parent, self.UID, 'BODYSTRUCTURE')
+        return BodyPart(self._bodystructure, self)
 
 
 class Messages(UserDict.DictMixin):
