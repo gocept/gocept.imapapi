@@ -127,7 +127,8 @@ class Folders(UserDict.DictMixin):
             flags, sep, name = gocept.imapapi.parser.mailbox_list(response)
             # XXX Looping the separator this way is kind of icky.
             self.separator = sep
-            name = name.split(sep)[-1]
+            if sep is not None:
+                name = name.split(sep)[-1]
             result.append(name)
         result.sort()
         return result
