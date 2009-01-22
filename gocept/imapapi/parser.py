@@ -50,6 +50,8 @@ def mailbox_list(line):
 
     """
     flags, sep, name = parse(line)
+    if sep == NIL:
+        sep = None
     return flags, sep, mailbox(name)
 
 
