@@ -114,6 +114,10 @@ class Folders(UserDict.DictMixin):
         self.container = container
 
     def keys(self):
+        if self.container.depth and self.container.separator is None:
+            # We have a non-hierarchical folder.
+            return []
+
         result = []
         if self.container.depth:
             path = self.container.path + self.container.separator
