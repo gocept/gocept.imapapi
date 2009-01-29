@@ -113,7 +113,12 @@ class Folders(UserDict.DictMixin):
     def __init__(self, container):
         self.container = container
 
+    _keys = None
+
     def keys(self):
+        if self._keys is not None:
+            return self._keys
+
         if self.container.depth and self.container.separator is None:
             # We have a non-hierarchical folder.
             return []
@@ -135,6 +140,8 @@ class Folders(UserDict.DictMixin):
                 name = name.split(sep)[-1]
             result.append(name)
         result.sort()
+
+        self._keys = result
         return result
 
     def __getitem__(self, key):
