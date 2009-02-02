@@ -179,8 +179,8 @@ class Message(object):
 
     def __repr__(self):
         repr = super(Message, self).__repr__()
-        return repr.replace('object', "object '%s/%s'" % (self.parent.path,
-                                                          self.name))
+        return repr.replace(
+            'object', 'object %r' % '/'.join((self.parent.path, self.name)))
 
     @property
     def server(self):
@@ -285,7 +285,7 @@ class Messages(UserDict.DictMixin):
             message = message.raw
         # XXX Timezone handling!
         container.server.append(
-            container.path, '', time.localtime(), message)
+            container.encoded_path, '', time.localtime(), message)
         if self.container._message_count_cache is not None:
             self.container._message_count_cache += 1
 

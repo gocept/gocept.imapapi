@@ -14,14 +14,20 @@ class Folder(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IFolder)
 
-    def __init__(self, name=None, parent=None, separator=None):
+    def __init__(self, name=None, parent=None, separator=None,
+                 encoded_name=None):
         self.name = name
+        self.encoded_name = encoded_name
+        if name is not None:
+            self.encoded_name = encode_modified_utf7(name)
+        elif encoded_name is not None:
+            self.name = decode_modified_utf7(encoded_name)
         self.parent = parent
         self._separator = separator
 
     def __repr__(self):
         repr = super(Folder, self).__repr__()
-        return repr.replace('object', "object '%s'" % self.path)
+        return repr.replace('object', 'object %r' % self.path)
 
     @property
     def server(self):
@@ -51,6 +57,10 @@ class Folder(object):
             return self.parent.path + self.separator + self.name
 
     @property
+    def encoded_path(self):
+        return encode_modified_utf7(self.path)
+
+    @property
     def folders(self):
         return Folders(self)
 
@@ -70,7 +80,7 @@ class Folder(object):
 
         """
         if self._message_count_cache is None:
-            code, data = self.server.status(self.path, "(MESSAGES)")
+            code, data = self.server.status(self.encoded_path, "(MESSAGES)")
             assert code == 'OK'
             self._message_count_cache = (
                 gocept.imapapi.parser.status(data[0])['MESSAGES'])
@@ -83,8 +93,8 @@ class Folder(object):
         selected, this is a no-op.
 
         """
-        if self.server.selected_path != self.path:
-            code, data = self.server.select(self.path)
+        if self.server.selected_path != self.encoded_path:
+            code, data = self.server.select(self.encoded_path)
             assert code == 'OK'
             self._message_count_cache = int(data[0])
 
@@ -98,7 +108,8 @@ class Folder(object):
 
         """
         if self._uidvalidity is None:
-            code, data = self.server.status(self.path, "(UIDVALIDITY)")
+            code, data = self.server.status(
+                self.encoded_path, "(UIDVALIDITY)")
             self._uidvalidity = (
                 gocept.imapapi.parser.status(data[0])['UIDVALIDITY'])
         return self._uidvalidity
@@ -125,7 +136,7 @@ class Folders(UserDict.DictMixin):
 
         result = []
         if self.container.depth:
-            path = self.container.path + self.container.separator
+            path = self.container.encoded_path + self.container.separator
         else:
             path = ''
         code, data = self.container.server.list('', path + '%')
@@ -138,6 +149,7 @@ class Folders(UserDict.DictMixin):
             self.separator = sep
             if sep is not None:
                 name = name.split(sep)[-1]
+            name = decode_modified_utf7(name)
             result.append(name)
         result.sort()
 
@@ -145,28 +157,26 @@ class Folders(UserDict.DictMixin):
         return result
 
     def __getitem__(self, key):
+        assert isinstance(key, unicode)
         if key not in self.keys():
             raise KeyError(key)
         # XXX Part two of the icky separator communication
         return Folder(key, self.container, self.separator)
 
     def __setitem__(self, key, folder):
+        assert isinstance(key, unicode)
         if not isinstance(folder, Folder):
             raise ValueError('Can only store folder objects.')
         if (folder.name is not None or
             folder.parent is not None):
             raise ValueError('Can only assign unattached folder objects.')
 
-        try:
-            key = key.encode('ascii')
-        except UnicodeDecodeError:
-            # XXX Look at modified UTF-7 encoding
-            raise ValueError('%r is not a valid folder name.' % name)
-
+        encoded_key = encode_modified_utf7(key)
         if self.container.depth >= 1:
-            path = self.container.path + self.container.separator + key
+            path = (self.container.encoded_path + self.container.separator +
+                    encoded_key)
         else:
-            path = key
+            path = encoded_key
 
         code, data = self.container.server.create(path)
         if code == 'NO':
@@ -175,4 +185,65 @@ class Folders(UserDict.DictMixin):
         assert code == 'OK'
 
         folder.name = key
+        folder.encoded_name = encoded_key
         folder.parent = self.container
+        if self._keys is not None:
+            self._keys.append(key)
+            self._keys.sort()
+
+
+def encode_modified_utf7(text):
+    r"""Modified UTF-7 encoding as specified in RfC 3501, section 5.1.3.
+
+    >>> encode_modified_utf7(u'\xe4\xf6\xfc')
+    '&AOQA9gD8-'
+
+    """
+    try:
+        for c in text:
+            pass
+    except:
+        import pdb; pdb.set_trace() 
+
+    def encode_buffer(buffer):
+        return buffer.encode('utf7').replace('/', ',').replace('+', '&')
+
+    bytes = ''
+    buffer = u''
+    for c in text:
+        if u'\x20' <= c <= u'\x7e':
+            bytes += encode_buffer(buffer)
+            buffer = u''
+            if c == u'&':
+                bytes += '&-'
+            else:
+                bytes += c.encode('ascii')
+        else:
+            buffer += c
+    bytes += encode_buffer(buffer)
+    return bytes
+
+
+def decode_modified_utf7(bytes):
+    r"""Modified UTF-7 decoding as specified in RfC 3501, section 5.1.3.
+
+    >>> decode_modified_utf7('&AOQA9gD8-')
+    u'\xe4\xf6\xfc'
+
+    """
+    def decode_buffer(buffer):
+        return buffer.replace('&', '+').replace(',', '/').decode('utf7')
+
+    text = u''
+    while '&' in bytes:
+        start = bytes.index('&')
+        text += bytes[:start].decode('ascii')
+
+        stop = bytes.index('-') + 1
+        if stop == start + 2:
+            text += u'&'
+        else:
+            text += decode_buffer(bytes[start:stop])
+        bytes = bytes[stop:]
+    text += bytes.decode('ascii')
+    return text
