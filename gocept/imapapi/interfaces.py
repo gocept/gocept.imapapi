@@ -94,6 +94,9 @@ class IFolder(IFolderContainer, IMessageContainer, IAccountContent):
 
     """
 
+    encoded_name = zope.schema.Bytes(
+        title=u'Folder name in modified UTF-7 encoding')
+
 
 class IBodyPart(zope.interface.Interface):
     """A part of a message body.

@@ -85,6 +85,7 @@ def setUp(self):
     # Create the standard hierarchy for tests
     callIMAP(server, 'create', 'INBOX/Baz')
     callIMAP(server, 'create', 'Bar')
+    callIMAP(server, 'create', 'F&APY-')
     status, data = server.logout()
     assert status == 'BYE'
 
@@ -105,5 +106,8 @@ def test_suite():
         checker=checker))
     suite.addTest(doctest.DocTestSuite(
         'gocept.imapapi.parser',
+        optionflags=optionflags))
+    suite.addTest(doctest.DocTestSuite(
+        'gocept.imapapi.folder',
         optionflags=optionflags))
     return suite

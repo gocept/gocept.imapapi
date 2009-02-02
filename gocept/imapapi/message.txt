@@ -11,9 +11,9 @@ Messages are retrieved from folders which are IMessageContainers:
 
 >>> from gocept.imapapi.account import Account
 >>> account = Account('localhost', 10143, 'test', 'bsdf')
->>> INBOX = account.folders['INBOX']
+>>> INBOX = account.folders[u'INBOX']
 >>> INBOX.name
-'INBOX'
+u'INBOX'
 >>> from gocept.imapapi.interfaces import IMessageContainer
 >>> IMessageContainer.providedBy(INBOX)
 True
@@ -28,7 +28,7 @@ Let's get a message now:
 
 >>> message = INBOX.messages.values()[0]
 >>> message
-<gocept.imapapi.message.Message object 'INBOX/...' at 0x2312872>
+<gocept.imapapi.message.Message object u'INBOX/...' at 0x2312872>
 
 
 Headers
@@ -278,7 +278,7 @@ Foo
 
 Then, we can use the message object for adding to another folder:
 
->>> Bar = account.folders['Bar']
+>>> Bar = account.folders[u'Bar']
 >>> Bar.messages.add(message)
 >>> Bar.messages.values()[0].headers.get('Message-ID')
 u'Foobar@localhost'
