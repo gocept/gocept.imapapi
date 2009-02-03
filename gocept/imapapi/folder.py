@@ -199,12 +199,6 @@ def encode_modified_utf7(text):
     '&AOQA9gD8-'
 
     """
-    try:
-        for c in text:
-            pass
-    except:
-        import pdb; pdb.set_trace() 
-
     def encode_buffer(buffer):
         return buffer.encode('utf7').replace('/', ',').replace('+', '&')
 
