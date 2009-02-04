@@ -173,7 +173,7 @@ class ParseError(Exception):
 class LookAheadStringIter(object):
     """String iterator that allows looking one character ahead.
 
-    >>> i = LookAheadStringIter('abcd')
+    >>> i = LookAheadStringIter('abxxxcd')
     >>> i.ahead
     'a'
     >>> i.next()
@@ -182,6 +182,10 @@ class LookAheadStringIter(object):
     'b'
     >>> i.next()
     'b'
+    >>> i.read(3)
+    'xxx'
+    >>> i.ahead
+    'c'
     >>> i.next()
     'c'
     >>> i.ahead
@@ -192,29 +196,42 @@ class LookAheadStringIter(object):
     >>> i.next()
     Traceback (most recent call last):
     StopIteration
+    >>> i.read()
+    ''
+    >>> i.next()
+    Traceback (most recent call last):
+    StopIteration
     """
 
-    index = -1
+    index = 0
 
     def __init__(self, string):
         self.string = string
-        self.iter = iter(string)
-        if string:
-            self.ahead = self.iter.next()
-        else:
-            self.ahead = None
+
+    @property
+    def ahead(self):
+        if self.string is not None:
+            try:
+                return self.string[self.index]
+            except IndexError:
+                pass
 
     def next(self):
-        self.index += 1
-        result = self.ahead
-        if result:
-            try:
-                self.ahead = self.iter.next()
-            except StopIteration:
-                self.ahead = None
-            return result
-        else:
+        try:
+            result = self.string[self.index]
+        except IndexError:
             raise StopIteration
+        self.index += 1
+        return result
+
+    def read(self, count=None):
+        if count is None:
+            result = self.string[self.index:]
+            self.index = len(self.string)
+        else:
+            result = self.string[self.index:self.index+count]
+            self.index += count
+        return result
 
     def __iter__(self):
         return self
@@ -355,13 +372,8 @@ def read_literal(data):
         raise ParseError(
             'Non-integer token for length of literal string', data)
 
-    result = ''
-    for c in data:
-        result += c
-        count -= 1
-        if not count:
-            break
-    else:
+    result = data.read(count)
+    if len(result) < count:
         raise ParseError('Unexpected end of literal string', data)
     return result
 
