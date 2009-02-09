@@ -356,6 +356,9 @@ def read_literal(data):
     >>> read_literal(_('{4}\r\na\\s\x1adf'))
     'a\\s\x1a'
 
+    >>> read_literal(_('{0}\r\n'))
+    ''
+
     """
     assert data.next() == '{'
     count = ''

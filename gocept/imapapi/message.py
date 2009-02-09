@@ -1,15 +1,19 @@
 # Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
+import cStringIO
 import UserDict
+import base64
 import email.Header
 import email.Parser
 import gocept.imapapi.interfaces
 import gocept.imapapi.parser
 import imaplib
+import itertools
+import quopri
+import tempfile
 import time
 import zope.interface
-
 
 parser = email.Parser.Parser()
 
@@ -106,6 +110,12 @@ class BodyPart(object):
         Content-Transfer-Encoding header field.
 
         """
+        temp = cStringIO.StringIO()
+        self.fetch_file(temp)
+        return temp.getvalue()
+
+    def fetch_file(self, f):
+        """Fetch the body part into a file-like object."""
         # XXX This is icky. This means that on multipart messages we will
         # fetch everything but on non-multipart messages we only fetch the
         # first element. I also tried creating a fake multi-part body but
@@ -119,15 +129,26 @@ class BodyPart(object):
         else:
             partnumber = self['partnumber']
 
-        # XXX Performance and memory optimisations here, please.
-        body = _fetch(self.server, self.message.parent, self.message.UID,
-                      'BODY[%s]' % partnumber)
-        transfer_enc = self.get('encoding')
-        if transfer_enc == 'quoted-printable':
-            body = body.decode('quopri')
-        elif transfer_enc == 'base64':
-            body = body.decode('base64')
-        return body
+        encoding = self.get('encoding')
+        if encoding in ['base64', 'quoted-printable']:
+            # XXX Make StringIO first, swap to temporary file on a size threshold.
+            encoded = tempfile.NamedTemporaryFile()
+        else:
+            encoded = f
+
+        for chunk_no in itertools.count():
+            data = _fetch(self.server, self.message.parent, self.message.UID,
+                          'BODY[%s]' % partnumber, chunk_no)
+            if data == '':
+                break
+            encoded.write(data)
+
+        encoded.seek(0)
+        if encoding == 'base64':
+            base64.decode(encoded, f)
+        elif encoding == 'quoted-printable':
+            quopri.decode(encoded, f)
+        f.seek(0)
 
     def by_cid(self, cid):
         """Return a sub-part by its Content-ID header."""
@@ -354,12 +375,22 @@ class Flags(object):
         self._update(data)
 
 
-def _fetch(server, mailbox, msg_uid, item):
+def _fetch(server, mailbox, msg_uid, data_item, chunk_no=None):
     # XXX This should definitely be a method of some appropriate class, but
     # such a refactoring will probably only make sense after messages and body
     # parts have been unified.
     mailbox._select()
-    code, data = server.uid('FETCH', msg_uid, '(%s)' % item)
+
+    data_item_req = data_item
+    data_item_resp = data_item.replace('.PEEK', '')
+    if chunk_no is not None:
+        buffer_size = 1<<24 # 8 MB chunks
+        offset = chunk_no * buffer_size
+        data_item_req += '<%i.%i>' % (offset, buffer_size)
+        data_item_resp += '<%i>' % offset
+
+    data_item_req = '(%s)' % data_item_req
+    code, data = server.uid('FETCH', msg_uid, data_item_req)
     assert code == 'OK'
     data = gocept.imapapi.parser.fetch(data)
-    return data[item.replace('.PEEK', '')]
+    return data[data_item_resp]
