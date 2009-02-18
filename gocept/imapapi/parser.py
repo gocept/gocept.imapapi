@@ -83,6 +83,17 @@ def fetch(line):
     return data
 
 
+def search(line):
+    """Parse an IMAP `search` (or `sort`) response.
+
+    >>> search(['12 14',])
+    [12, 14]
+
+    """
+    line = unsplit(line).next()
+    return [number(x) for x in parse(line)]
+
+
 def _parse_envelope(envelope):
     envelope = dict(zip(['date', 'subject', 'from', 'sender', 'reply-to',
                          'to', 'cc', 'bcc', 'in-reply-to', 'message-id'],
