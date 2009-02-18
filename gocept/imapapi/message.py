@@ -191,12 +191,14 @@ class Message(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IMessage)
 
+    # XXX WTF?
     __allow_access_to_unprotected_subobjects__ = True
 
-    def __init__(self, name, parent, envelope):
+    def __init__(self, name, parent, envelope, flags):
         self.headers = MessageHeaders(self, envelope)
         self.name = name
         self.parent = parent
+        self.flags = Flags(self, flags)
 
     def __repr__(self):
         repr = super(Message, self).__repr__()
@@ -210,10 +212,6 @@ class Message(object):
     @property
     def UID(self):
         return self.name.split('-')[1]
-
-    @property
-    def flags(self):
-        return Flags(self)
 
     @property
     def text(self):
@@ -255,7 +253,7 @@ class Messages(UserDict.DictMixin):
     def _key(self, uid):
         return '%s-%s' % (self.container.uidvalidity, uid)
 
-    def _fetch_lines(self, msg_set, spec):
+    def _fetch_lines(self, msg_set, spec, uid=False):
         self.container._select()
         try:
             code, data = self.container.server.fetch(msg_set, spec)
@@ -275,17 +273,34 @@ class Messages(UserDict.DictMixin):
     def _make_message(self, line):
         data = gocept.imapapi.parser.fetch(line)
         return Message(
-            self._key(data['UID']), self.container, data['ENVELOPE'])
+            self._key(data['UID']), self.container, data['ENVELOPE'],
+            data['FLAGS'])
 
     def values(self):
         lines = self._fetch_lines(
-            '%s:%s' % (1, len(self)), '(UID ENVELOPE)')
+            '%s:%s' % (1, len(self)), '(UID ENVELOPE FLAGS)')
         return [self._make_message(line) for line in lines]
+
+    def by_uids(self, uids):
+        # XXX naming of this method sucks :/
+        uids = ','.join(self._split_uid(uid) for uid in uids)
+        self.container._select()
+        try:
+            code, data = self.container.server.UID(
+                'FETCH', uids, '(UID ENVELOPE FLAGS)')
+        except imaplib.IMAP4.error:
+            # Messages might have been deleted (Dovecot).
+            return []
+        if code == 'NO':
+            # Messages might have been deleted (Cyrus).
+            return []
+        return [self._make_message(line)
+                for line in gocept.imapapi.parser.unsplit(data)]
 
     def __getitem__(self, key):
         self.container._select()
         uid = self._split_uid(key)
-        code, data = self.container.server.uid('FETCH', uid, '(ENVELOPE)')
+        code, data = self.container.server.uid('FETCH', uid, '(ENVELOPE FLAGS)')
         if data[0] is None:
             raise KeyError(key)
         return self._make_message(data)
@@ -347,7 +362,9 @@ class LazyMessageSequence(object):
         self.messages = messages
 
     def __getslice__(self, i, j):
-        return [self.messages[x] for x in self.uids[i:j]]
+        messages = self.messages.by_uids(self.uids[i:j])
+        messages.sort(key=lambda x:self.uids.index(x.name))
+        return messages
 
     def __getitem__(self, i):
         return self.messages[self.uids[i]]
@@ -363,10 +380,10 @@ def update(func):
 
 class Flags(object):
 
-    def __init__(self, message):
+    def __init__(self, message, flags=None):
         self.message = message
         self.server = self.message.server
-        self.flags = None
+        self.flags = flags
 
     @update
     def __repr__(self):
