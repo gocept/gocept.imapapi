@@ -86,10 +86,15 @@ u'Top level/Subfolder/Subsubfolder'
 Accessing messages
 ==================
 
-Messages can be retrieved from a folder using its `messages` attribute:
+Messages can be retrieved from a folder using its `messages` attribute
+which provides a dictionary-like API:
+
+>>> INBOX.messages
+<4 messages of <gocept.imapapi.folder.Folder object u'INBOX' at 0xb78b3cac>>
 
 >>> pprint(dict(INBOX.messages))
 {'...-...': <gocept.imapapi.message.Message object u'INBOX/...-...' at 0x2162537>,
+ ...
  '...-...': <gocept.imapapi.message.Message object u'INBOX/...-...' at 0x2138986>}
 
 Individual messages have a name attribute which can be used to uniquely
@@ -102,6 +107,35 @@ u'1'
 >>> INBOX.messages[mail1.name].headers['X-IMAPAPI-Test']
 u'1'
 
+In addition to the dictionary access, messages can be filtered and
+sorted. The result is an list-like object supporting index access and
+slicing:
+
+>>> messages = INBOX.messages.filtered(sort_by='SUBJECT')
+>>> [m.headers['Subject'] for m in messages]
+[u'11 - AppleMail, Complex HTML with many images',
+ u'Mail 1',
+ u'Mail 2',
+ u'Mail 3']
+
+The sort direction can be reversed by specifying `sort_dir=='desc'`:
+
+>>> messages = INBOX.messages.filtered(
+...     sort_by='SUBJECT', sort_dir='desc')
+>>> [m.headers['Subject'] for m in messages]
+[u'Mail 3',
+ u'Mail 2',
+ u'Mail 1',
+ u'11 - AppleMail, Complex HTML with many images']
+
+The message list returned from the filtering is lazy and supports
+slicing and item access:
+
+>>> [m.headers['Subject'] for m in messages[1:3]]
+[u'Mail 2', u'Mail 1']
+
+>>> messages[1].headers['Subject']
+u'Mail 2'
 
 Appending messages to folders
 =============================

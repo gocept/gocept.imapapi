@@ -246,6 +246,9 @@ class Messages(UserDict.DictMixin):
     def __init__(self, container):
         self.container = container
 
+    def __repr__(self):
+        return '<%s messages of %r>' % (len(self), self.container)
+
     def __len__(self):
         return self.container.message_count
 
@@ -310,6 +313,19 @@ class Messages(UserDict.DictMixin):
         if self.container._message_count_cache is not None:
             self.container._message_count_cache += 1
 
+    def filtered(self, sort_by, sort_dir='asc'):
+        # XXX make API for sort_by not IMAP-syntax specific.
+        sort_criterion = sort_by
+        if sort_dir == 'desc':
+            sort_criterion = 'REVERSE ' + sort_criterion
+        self.container._select()
+        code, data = self.container.server.uid(
+            'SORT', '(%s)' % sort_criterion, 'UTF-8', 'ALL')
+        assert code == 'OK'
+        uids = gocept.imapapi.parser.search(data)
+        uids = [self._key(uid) for uid in uids]
+        return LazyMessageSequence(uids, self)
+
     def _split_uid(self, key):
         """Parse and verify validity and UID pair.
 
@@ -322,6 +338,19 @@ class Messages(UserDict.DictMixin):
                 'Invalid UID validity %s for session with validity %s.' %
                 (validity, self.container.uidvalidity))
         return uid
+
+
+class LazyMessageSequence(object):
+
+    def __init__(self, uids, messages):
+        self.uids = uids
+        self.messages = messages
+
+    def __getslice__(self, i, j):
+        return [self.messages[x] for x in self.uids[i:j]]
+
+    def __getitem__(self, i):
+        return self.messages[self.uids[i]]
 
 
 def update(func):
