@@ -315,7 +315,7 @@ class Messages(UserDict.DictMixin):
 
     def filtered(self, sort_by, sort_dir='asc'):
         # XXX make API for sort_by not IMAP-syntax specific.
-        sort_criterion = sort_by
+        sort_criterion = sort_by.upper()
         if sort_dir == 'desc':
             sort_criterion = 'REVERSE ' + sort_criterion
         self.container._select()
