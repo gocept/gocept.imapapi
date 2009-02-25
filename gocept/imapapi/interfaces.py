@@ -97,6 +97,14 @@ class IFolder(IFolderContainer, IMessageContainer, IAccountContent):
     encoded_name = zope.schema.Bytes(
         title=u'Folder name in modified UTF-7 encoding')
 
+    is_subfolder = zope.schema.Bool(title=u'Is this a subfolder?')
+
+    depth = zope.schema.Int(title=u'Depth in folder hierarchy')
+
+    separator = zope.schema.Bytes(title=u'Folder hierarchy separator')
+
+    path = zope.schema.TextLine(title=u'Folder path')
+
 
 class IBodyPart(zope.interface.Interface):
     """A part of a message body.

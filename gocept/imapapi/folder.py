@@ -34,27 +34,31 @@ class Folder(object):
         return self.parent.server
 
     @property
+    def is_subfolder(self):
+        return gocept.imapapi.interfaces.IFolder.providedBy(self.parent)
+
+    @property
     def depth(self):
-        if gocept.imapapi.interfaces.IAccount.providedBy(self.parent):
-            return 1
-        else:
+        if self.is_subfolder:
             return self.parent.depth + 1
+        else:
+            return 1
 
     @property
     def separator(self):
         # RfC 3501 requires to always use the same separator as given by the
         # top-level node.
-        if self.depth == 1:
-            return self._separator
-        else:
+        if self.is_subfolder:
             return self.parent.separator
+        else:
+            return self._separator
 
     @property
     def path(self):
-        if self.depth == 1:
-            return self.name
-        else:
+        if self.is_subfolder:
             return self.parent.path + self.separator + self.name
+        else:
+            return self.name
 
     @property
     def encoded_path(self):
@@ -130,17 +134,19 @@ class Folders(UserDict.DictMixin):
         if self._keys is not None:
             return self._keys
 
-        if self.container.depth and self.container.separator is None:
-            # We have a non-hierarchical folder.
-            return []
-
-        result = []
-        if self.container.depth:
-            path = self.container.encoded_path + self.container.separator
+        if gocept.imapapi.interfaces.IFolder.providedBy(self.container):
+            if self.container.separator is not None:
+                path = self.container.encoded_path + self.container.separator
+            else:
+                # We have a non-hierarchical folder.
+                return []
         else:
             path = ''
+
         code, data = self.container.server.list('', path + '%')
         assert code == 'OK'
+
+        result = []
         for response in gocept.imapapi.parser.unsplit(data):
             if response is None:
                 continue
@@ -172,7 +178,7 @@ class Folders(UserDict.DictMixin):
             raise ValueError('Can only assign unattached folder objects.')
 
         encoded_key = encode_modified_utf7(key)
-        if self.container.depth >= 1:
+        if gocept.imapapi.interfaces.IFolder.providedBy(self.container):
             path = (self.container.encoded_path + self.container.separator +
                     encoded_key)
         else:
