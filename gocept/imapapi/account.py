@@ -8,7 +8,6 @@ import zope.interface
 import gocept.imapapi
 import gocept.imapapi.interfaces
 import gocept.imapapi.folder
-import gocept.imapapi.parser
 import gocept.imapapi.imap
 
 import sys
@@ -19,9 +18,6 @@ import socket
 class Account(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IAccount)
-
-    depth = 0
-    path = ''
 
     def __init__(self, host, port, user, password, ssl=False):
         self.host = host
