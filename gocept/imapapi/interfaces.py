@@ -62,6 +62,12 @@ class IMessages(zope.interface.common.mapping.IMapping):
     """A mapping object for accessing messages located in IMessageContainers.
     """
 
+    def add(message):
+        """Add a message to the container."""
+
+    def filtered(sort_by, sort_dir='asc'):
+        """Return a sequence of all messages that pass the filter."""
+
 
 class IFolderContainer(zope.interface.Interface):
     """An object that contains folders."""
@@ -77,6 +83,9 @@ class IMessageContainer(zope.interface.Interface):
     messages = zope.schema.Object(
         title=u'The messages of this folder.',
         schema=IMessages)
+
+    def filtered_messages(sort_by, sort_dir='asc', i=0, j=None):
+        """Return a partial sequence of all messages that pass the filter."""
 
 
 class IAccount(IFolderContainer):
