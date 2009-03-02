@@ -225,6 +225,15 @@ True
 >>> r'\Answered' in message.flags
 False
 
+Adding custom flags
+-------------------
+
+Messages can have non-standard flags like a marker for Junk:
+
+>>> message.flags.add(r'$Junk')
+>>> message.flags
+flags(['\\Seen', '$Junk'])
+
 
 Copying messages
 ================
