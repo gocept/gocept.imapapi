@@ -18,9 +18,9 @@ class Folder(object):
                  encoded_name=None):
         self.name = name
         self.encoded_name = encoded_name
-        if name is not None:
+        if encoded_name is None and name is not None:
             self.encoded_name = encode_modified_utf7(name)
-        elif encoded_name is not None:
+        if name is None and encoded_name is not None:
             self.name = decode_modified_utf7(encoded_name)
         self.parent = parent
         self._separator = separator
@@ -62,7 +62,11 @@ class Folder(object):
 
     @property
     def encoded_path(self):
-        return encode_modified_utf7(self.path)
+        if self.is_subfolder:
+            return (self.parent.encoded_path + self.separator
+                    + self.encoded_name)
+        else:
+            return self.encoded_name
 
     @property
     def folders(self):
