@@ -245,5 +245,5 @@ def decode_modified_utf7(bytes):
         else:
             text += decode_buffer(bytes[start:stop])
         bytes = bytes[stop:]
-    text += bytes.decode('ascii')
+    text += bytes.decode('ascii', 'replace')
     return text

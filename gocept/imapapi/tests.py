@@ -86,6 +86,7 @@ def setUp(self):
     callIMAP(server, 'create', 'INBOX/Baz')
     callIMAP(server, 'create', 'Bar')
     callIMAP(server, 'create', 'F&APY-')
+    callIMAP(server, 'create', '\xef')
     status, data = server.logout()
     assert status == 'BYE'
 

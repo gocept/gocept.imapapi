@@ -37,8 +37,8 @@ An account contains folders, but does not contain messages by itself:
 >>> pprint(dict(account.folders))
 {u'Bar': <gocept.imapapi.folder.Folder object u'Bar' at 0x2615309>,
  u'F\xf6': <gocept.imapapi.folder.Folder object u'F\xf6' at 0x2623456>,
- u'INBOX': <gocept.imapapi.folder.Folder object u'INBOX' at 0x2631278>}
-
+ u'INBOX': <gocept.imapapi.folder.Folder object u'INBOX' at 0x2631278>,
+ u'\ufffd': <gocept.imapapi.folder.Folder object u'\ufffd' at 0x2631567>}
 >>> account.messages
 Traceback (most recent call last):
 AttributeError: 'Account' object has no attribute 'messages'
