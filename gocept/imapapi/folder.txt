@@ -14,7 +14,8 @@ top-level folders:
 >>> pprint(dict(account.folders))
 {u'Bar': <gocept.imapapi.folder.Folder object u'Bar' at 0x2612732>,
  u'F\xf6': <gocept.imapapi.folder.Folder object u'F\xf6' at 0x2612732>,
- u'INBOX': <gocept.imapapi.folder.Folder object u'INBOX' at 0x2134232>}
+ u'INBOX': <gocept.imapapi.folder.Folder object u'INBOX' at 0x2134232>,
+ u'\ufffd': <gocept.imapapi.folder.Folder object u'\ufffd' at 0x2631567>}
 
 A folder knows about its name, path, separator, and depth in the hierarchy:
 
@@ -57,7 +58,8 @@ folders. Let's create three nested folders starting at the top level:
 {u'Bar': <gocept.imapapi.folder.Folder object u'Bar' at 0x2142346>,
  u'F\xf6': <gocept.imapapi.folder.Folder object u'F\xf6' at 0x2612732>,
  u'INBOX': <gocept.imapapi.folder.Folder object u'INBOX' at 0x2762352>,
- u'Top level': <gocept.imapapi.folder.Folder object u'Top level' at 0x2123423>}
+ u'Top level': <gocept.imapapi.folder.Folder object u'Top level' at 0x2123423>,
+ u'\ufffd': <gocept.imapapi.folder.Folder object u'\ufffd' at 0x2631567>}
 >>> top_level = account.folders[u'Top level']
 >>> top_level.name
 u'Top level'
