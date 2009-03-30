@@ -227,23 +227,41 @@ def encode_modified_utf7(text):
 def decode_modified_utf7(bytes):
     r"""Modified UTF-7 decoding as specified in RfC 3501, section 5.1.3.
 
+    We can decode correctly encoded Unicode:
+
     >>> decode_modified_utf7('&AOQA9gD8-')
     u'\xe4\xf6\xfc'
 
+    We don't break on junk:
+
+    >>> decode_modified_utf7('\xef')
+    u'\\xef'
+
+    As a convenience, we try to interpret junk as UTF-8:
+
+    >>> decode_modified_utf7(u'\xe4'.encode('utf-8'))
+    u'\xe4'
+
     """
-    def decode_buffer(buffer):
+    def decode_utf7(buffer):
         return buffer.replace('&', '+').replace(',', '/').decode('utf7')
+
+    def decode_ascii(buffer):
+        try:
+            return buffer.decode('utf-8')
+        except UnicodeDecodeError:
+            return unicode(repr(buffer)[1:-1])
 
     text = u''
     while '&' in bytes:
         start = bytes.index('&')
-        text += bytes[:start].decode('ascii')
+        text += decode_ascii(bytes[:start])
 
         stop = bytes.index('-') + 1
         if stop == start + 2:
             text += u'&'
         else:
-            text += decode_buffer(bytes[start:stop])
+            text += decode_utf7(bytes[start:stop])
         bytes = bytes[stop:]
-    text += bytes.decode('ascii', 'replace')
+    text += decode_ascii(bytes)
     return text
