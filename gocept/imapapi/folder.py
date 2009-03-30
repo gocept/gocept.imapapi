@@ -237,18 +237,13 @@ def decode_modified_utf7(bytes):
     >>> decode_modified_utf7('\xef')
     u'\\xef'
 
-    As a convenience, we try to interpret junk as UTF-8:
-
-    >>> decode_modified_utf7(u'\xe4'.encode('utf-8'))
-    u'\xe4'
-
     """
     def decode_utf7(buffer):
         return buffer.replace('&', '+').replace(',', '/').decode('utf7')
 
     def decode_ascii(buffer):
         try:
-            return buffer.decode('utf-8')
+            return buffer.decode('ascii')
         except UnicodeDecodeError:
             return unicode(repr(buffer)[1:-1])
 
