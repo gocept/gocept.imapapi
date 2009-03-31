@@ -14,7 +14,7 @@ def iterate_pairs(iterable):
 def dict_from_sequence(sequence):
     result = {}
     for key, value in iterate_pairs(sequence):
-        assert type(key) == Atom
+        assert type(key) in (Atom, AttributeSpec)
         result[str(key)] = value
     return result
 
@@ -65,11 +65,20 @@ def status(line):
     return status
 
 
-def fetch(line):
+def fetch(line, fetch_all=False):
     """Parse an IMAP `fetch` response.
     """
-    if not isinstance(line, basestring):
-        line = unsplit(line).next()
+    if isinstance(line, basestring):
+        lines = iter([line])
+    else:
+        lines = unsplit(line)
+    if fetch_all:
+        return [fetch_one(line) for line in lines]
+    else:
+        return fetch_one(lines.next())
+
+
+def fetch_one(line):
     msg_number, response = parse(line)
     data = dict_from_sequence(response)
     if 'UID' in data:
@@ -172,7 +181,7 @@ def _parse_message_rfc822(element, path):
     return data
 
 
-ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){%*"\ ']
+ATOM_CHARS = [chr(i) for i in xrange(32, 256) if chr(i) not in r'(){%*"\ ]']
 
 
 class ParseError(Exception):
@@ -335,6 +344,33 @@ class Flag(Atom):
         return '\\' + self.value
 
 
+class AttributeSpec(object):
+    """A message attribute specifier: UID, BODY[HEADER.FIELDS (FROM)] etc.
+    """
+
+    def __init__(self, primary, msgtext=None, header_list=None, range=None):
+        self.primary = primary
+        self.msgtext = msgtext
+        self.header_list = header_list
+        self.range = range
+
+    def __repr__(self):
+        return '<AttributeSpec %s>' % self
+
+    def __str__(self):
+        result = str(self.primary)
+        if self.msgtext is not None:
+            if self.header_list is None:
+                result += '[%s]' % self.msgtext
+            else:
+                result += '[%s (%s)]' % (
+                    self.msgtext,
+                    ' '.join(str(atom) for atom in self.header_list))
+        if self.range is not None:
+            result += self.range.value
+        return result
+
+
 def read_quoted(data):
     """Read a quoted string from an IMAP response.
 
@@ -410,7 +446,7 @@ def read_list(data):
 
 
 def read_atom(data):
-    """Read an atom from an IMAP response.
+    """Read an atom or attribute specification from an IMAP response.
 
     Like atoms, this internal function of the parser does not care about NIL
     and integer literals.
@@ -427,12 +463,47 @@ def read_atom(data):
     >>> read_atom(_('123'))
     <IMAP atom 123>
 
+    >>> read_atom(_('BODY[]'))
+    <AttributeSpec BODY[]>
+
+    >>> read_atom(_('BODY[HEADER]'))
+    <AttributeSpec BODY[HEADER]>
+
+    >>> read_atom(_('BODY[HEADER.FIELDS (FROM)]'))
+    <AttributeSpec BODY[HEADER.FIELDS (FROM)]>
+
+    >>> read_atom(_('BODY[HEADER.FIELDS (FROM)]<0>'))
+    <AttributeSpec BODY[HEADER.FIELDS (FROM)]<0>>
+
     """
     assert data.ahead in ATOM_CHARS
     result = ''
     while data.ahead in ATOM_CHARS:
-        result += data.next()
-    return Atom(result)
+        c = data.next()
+        if c == '[':
+            break
+        else:
+            result += c
+    else:
+        return Atom(result)
+
+    if data.ahead == ']':
+        msgtext = ''
+    else:
+        msgtext = read_atom(data)
+    if data.ahead == ' ':
+        data.next()
+        header_list = read_list(data)
+    else:
+        header_list = None
+    if data.ahead != ']':
+        raise ParseError('Unexpected end of header list', data)
+    data.next()
+    if data.ahead == '<':
+        range = read_atom(data)
+    else:
+        range = None
+    return AttributeSpec(result, msgtext, header_list, range)
 
 
 def read_flag(data):
