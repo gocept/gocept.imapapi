@@ -137,6 +137,27 @@ slicing and item access:
 >>> messages[1].headers['Subject']
 u'Mail 2'
 
+Other possible sort keys include:
+
+'From' address:
+
+>>> messages = INBOX.messages.filtered(sort_by='FROM')
+>>> [m.headers['From'] for m in messages]
+[u'',
+ u'Zaphod <admin@example.com>',
+ u'Christian Zagrodnick <cz@gocept.com>',
+ u'test@localhost']
+
+'From' real name, falling back to the address if no real name is given:
+
+>>> messages = INBOX.messages.filtered(sort_by='FROM_NAME')
+>>> [m.headers['From'] for m in messages]
+[u'',
+ u'Christian Zagrodnick <cz@gocept.com>',
+ u'test@localhost',
+ u'Zaphod <admin@example.com>']
+
+
 Appending messages to folders
 =============================
 
