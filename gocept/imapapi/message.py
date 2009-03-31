@@ -331,15 +331,44 @@ class Messages(UserDict.DictMixin):
     def filtered(self, sort_by, sort_dir='asc'):
         # XXX make API for sort_by not IMAP-syntax specific.
         sort_criterion = sort_by.upper()
+        self.container._select()
+        if sort_criterion == 'FROM_NAME':
+            uids = self._filtered_by_header('FROM', self.from_name, sort_dir)
+        else:
+            uids = self._filtered_by_imap(sort_criterion, sort_dir)
+        uids = [self._key(uid) for uid in uids]
+        return LazyMessageSequence(uids, self)
+
+    def _filtered_by_imap(self, sort_criterion, sort_dir):
         if sort_dir == 'desc':
             sort_criterion = 'REVERSE ' + sort_criterion
-        self.container._select()
         code, data = self.container.server.uid(
             'SORT', '(%s)' % sort_criterion, 'UTF-8', 'ALL')
         assert code == 'OK'
         uids = gocept.imapapi.parser.search(data)
-        uids = [self._key(uid) for uid in uids]
-        return LazyMessageSequence(uids, self)
+        return uids
+
+    def _filtered_by_header(self, field, key, sort_dir):
+        code, data = self.container.server.uid(
+            'FETCH', '1:*', '(BODY[HEADER.FIELDS (%s)])' % field)
+        assert code == 'OK'
+        items = gocept.imapapi.parser.fetch(data, fetch_all=True)
+        for item in items:
+            lines = item['BODY[HEADER.FIELDS (%s)]' % field]
+            line = lines.splitlines()[0]
+            if line:
+                assert line.startswith('From: ')
+                value = line[6:]
+                item['key'] = key(value)
+        result = [item['UID']
+                  for item in sorted(items, key=lambda item: item.get('key'))]
+        if sort_dir == 'desc':
+            result.reverse()
+        return result
+
+    def from_name(self, value):
+        name, addr = email.Utils.parseaddr(value)
+        return (name + addr).lower()
 
     def _split_uid(self, key):
         """Parse and verify validity and UID pair.
