@@ -29,6 +29,13 @@ class Folder(object):
         repr = super(Folder, self).__repr__()
         return repr.replace('object', 'object %r' % self.path)
 
+    def __eq__(self, other):
+        if not isinstance(other, Folder):
+            return False
+        if self.server is not other.server:
+            return False
+        return self.path == other.path
+
     @property
     def server(self):
         return self.parent.server

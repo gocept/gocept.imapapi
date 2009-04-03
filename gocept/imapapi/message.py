@@ -306,6 +306,10 @@ class Messages(UserDict.DictMixin):
         return self._make_message(data)
 
     def __delitem__(self, key):
+        if isinstance(key, slice):
+            self._delslice(key)
+            return
+
         # XXX This method should not access the message count cache of its
         # container directly. Ideally, it should not even have to care about
         # the message count; this is what EXPUNGE responses are for.
@@ -314,6 +318,22 @@ class Messages(UserDict.DictMixin):
         self.container._select()
         self.container.server.expunge()
         self.container._message_count_cache -= 1
+
+    def __delslice__(self, begin, end):
+        self._delslice(slice(begin, end))
+
+    def _delslice(self, slice):
+        # XXX This method should not access the message count cache of its
+        # container directly. Ideally, it should not even have to care about
+        # the message count; this is what EXPUNGE responses are for.
+        keys = self.keys()[slice.start:slice.stop:slice.step]
+        for key in keys:
+            message = self[key]
+            message.flags.add('\\Deleted')
+        self.container._select()
+        self.container.server.expunge()
+        self.container._message_count_cache -= len(keys)
+
 
     def add(self, message):
         # XXX This method should not access the message count cache of its

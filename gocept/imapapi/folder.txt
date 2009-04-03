@@ -45,6 +45,20 @@ u'INBOX/Baz'
 >>> baz.depth
 2
 
+Folders can be compared for equality to see whether they're the same folders:
+
+>>> account.folders[u'INBOX'] == account.folders[u'INBOX']
+True
+>>> account.folders[u'Bar'] == account.folders[u'INBOX']
+False
+
+Being the same folder also requires to be connected in the same connection:
+
+>>> account_ = Account('localhost', 10143, 'test', 'bsdf')
+>>> account_.folders[u'INBOX'] == account.folders[u'INBOX']
+False
+
+
 Creating folders
 ================
 
