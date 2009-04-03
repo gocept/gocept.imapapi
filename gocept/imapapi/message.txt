@@ -258,6 +258,20 @@ Then, we can use the message object for adding to another folder:
 u'Foobar@localhost'
 
 
+Edge cases
+==========
+
+XXX This could/should move to a regression (non-doc) test.
+
+Fetching the body part of a `text/plain` message works:
+
+>>> message = INBOX.messages.values()[0]
+>>> message.body['content_type']
+'text/plain'
+>>> message.body.fetch()
+'Everything is ok!'
+
+
 Deleting messages
 =================
 
@@ -267,14 +281,21 @@ Messages are deleted by removing them from their folder's messages container:
 >>> message.name in INBOX.messages
 False
 
+We can also delete multiple messages at once:
 
-Edge cases
-==========
+>>> len(INBOX.messages)
+4
+>>> keys = INBOX.messages.keys()[1:3]
+>>> del INBOX.messages[1:3]
+>>> len(INBOX.messages)
+2
+>>> for key in keys:
+...     print bool(key in INBOX.messages)
+False
+False
 
-Fetching the body part of a `text/plain` message works:
+Deleting all:
 
->>> message = INBOX.messages.values()[0]
->>> message.body['content_type']
-'text/plain'
->>> message.body.fetch()
-'Everything is ok!'
+>>> del INBOX.messages[:]
+>>> len(INBOX.messages)
+0
