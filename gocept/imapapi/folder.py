@@ -110,7 +110,7 @@ class Folder(object):
         """
         if self.server.selected_path != self.encoded_path:
             code, data = self.server.select(self.encoded_path)
-            assert code == 'OK'
+            assert code == 'OK', 'Unexpected status code %s' % code
             self._message_count_cache = int(data[0])
 
     _uidvalidity = None
