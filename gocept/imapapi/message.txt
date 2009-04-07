@@ -42,15 +42,15 @@ u'1'
 >>> message.headers['X-Correct-Encoding-Header']
 u'Text \xfc'
 
-Invalid encodings will end in unicode strings anyway but with replaced
-characters as a hint:
+Invalid encodings will result in unicode strings anyway but using UTF-8 and
+ISO8859-1 as fallback encodings:
 
 >>> message.headers['X-Unknown-Encoding-Header']
-u'Text \ufffd\ufffd'
+u'Text \xfc'
 >>> message.headers['X-Wrong-Encoding-Header']
-u'Text \ufffd\ufffd'
+u'Text \xfc'
 >>> message.headers['X-No-Encoding-Header']
-u'Text \ufffd or not'
+u'Text \xfc or not'
 
 Other popular headers like From, Date and Subject can be accessed by using the
 dictionary API, too. They are also decoded into unicode automatically:
