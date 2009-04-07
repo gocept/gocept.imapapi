@@ -38,13 +38,7 @@ class MessageHeaders(UserDict.DictMixin):
         result = u''
         decoded = email.Header.decode_header(value)
         for text, charset in decoded:
-            if charset is None:
-                result += text.decode('ascii', 'replace')
-            else:
-                try:
-                    result += text.decode(charset, 'replace')
-                except LookupError:
-                    result += text.decode('ascii', 'replace')
+            result += fallback_decode(text, charset)
         return result
 
     def keys(self):
@@ -489,3 +483,16 @@ def _fetch(server, mailbox, msg_uid, data_item, chunk_no=None):
     assert code == 'OK'
     data = gocept.imapapi.parser.fetch(data)
     return data[data_item_resp]
+
+
+def fallback_decode(text, encoding='ascii'):
+    try:
+        return text.decode(encoding)
+    except (TypeError, LookupError, UnicodeDecodeError):
+        pass
+    try:
+        return text.decode('utf-8')
+    except UnicodeDecodeError:
+        pass
+    # XXX We might want to decode('ascii', 'replace') instead:
+    return text.decode('iso8859-15')
