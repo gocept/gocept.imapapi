@@ -33,11 +33,11 @@ class IMAPConnection(object):
 #        logger.debug('connect(%s, %s)' % (host, port))
 
 # XXX disable logging as a quick fix to avoid logging plain-text passwords
-#    def __getattr__(self, name):
-#        attr = getattr(self.server, name)
+    def __getattr__(self, name):
+        attr = getattr(self.server, name)
 #        if callable(attr):
 #            attr = callable_proxy(name, attr)
-#        return attr
+        return attr
 
     @property
     def selected_path(self):
