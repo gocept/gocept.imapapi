@@ -30,13 +30,14 @@ class IMAPConnection(object):
             self.server = imaplib.IMAP4_SSL(host, port)
         else:
             self.server = imaplib.IMAP4(host, port)
-        logger.debug('connect(%s, %s)' % (host, port))
+#        logger.debug('connect(%s, %s)' % (host, port))
 
-    def __getattr__(self, name):
-        attr = getattr(self.server, name)
-        if callable(attr):
-            attr = callable_proxy(name, attr)
-        return attr
+# XXX disable logging as a quick fix to avoid logging plain-text passwords
+#    def __getattr__(self, name):
+#        attr = getattr(self.server, name)
+#        if callable(attr):
+#            attr = callable_proxy(name, attr)
+#        return attr
 
     @property
     def selected_path(self):
