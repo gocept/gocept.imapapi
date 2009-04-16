@@ -174,7 +174,7 @@ class Folders(UserDict.DictMixin):
         return result
 
     def __getitem__(self, key):
-        assert isinstance(key, unicode)
+        key = unicode(key)
         if key not in self.keys():
             raise KeyError(key)
         # XXX Part two of the icky separator communication
