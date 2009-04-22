@@ -135,6 +135,8 @@ class BodyPart(object):
                           'BODY[%s]' % partnumber, chunk_no)
             if data == '':
                 break
+            if data == gocept.imapapi.parser.NIL:
+                raise gocept.imapapi.interfaces.BrokenMIMEPart()
             encoded.write(data)
 
         encoded.seek(0)
