@@ -12,7 +12,11 @@ logger = logging.getLogger('gocept.imapapi.imap')
 
 def callable_proxy(name, callable):
     def proxy(*args, **kw):
-        logger.debug('%s(%s, %s)' % (name, args, kw))
+        log_args = args
+        if name.startswith('login'):
+            user, password = args
+            log_args = (user, '****')
+        logger.debug('%s(%s, %s)' % (name, log_args, kw))
         return callable(*args, **kw)
     return proxy
 
@@ -30,13 +34,12 @@ class IMAPConnection(object):
             self.server = imaplib.IMAP4_SSL(host, port)
         else:
             self.server = imaplib.IMAP4(host, port)
-#        logger.debug('connect(%s, %s)' % (host, port))
+        logger.debug('connect(%s, %s)' % (host, port))
 
-# XXX disable logging as a quick fix to avoid logging plain-text passwords
     def __getattr__(self, name):
         attr = getattr(self.server, name)
-#        if callable(attr):
-#            attr = callable_proxy(name, attr)
+        if callable(attr):
+            attr = callable_proxy(name, attr)
         return attr
 
     @property
