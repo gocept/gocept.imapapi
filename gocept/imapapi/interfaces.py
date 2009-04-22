@@ -1,4 +1,4 @@
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
 
 import zope.interface
@@ -8,6 +8,10 @@ import zope.schema
 
 class IMAPError(Exception):
     """An error raised due to a failed IMAP command."""
+
+
+class BrokenMIMEPart(Exception):
+    """An error raised if the IMAP server reported a NIL body part."""
 
 
 class IAccountContent(zope.interface.Interface):
