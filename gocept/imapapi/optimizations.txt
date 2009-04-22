@@ -22,7 +22,7 @@ selected yet:
 >>> account = gocept.imapapi.account.Account(
 ...     'localhost', 10143, 'test', 'bsdf')
 connect(localhost, 10143)
-login(('test', 'bsdf'), {})
+login(('test', '****'), {})
 >>> account.folders[u'INBOX']._select()
 list(('', '%'), {})
 select(('INBOX',), {})
