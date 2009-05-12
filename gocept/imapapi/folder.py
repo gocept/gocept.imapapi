@@ -1,6 +1,5 @@
 # Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
-# $Id: account.py 12226 2008-07-01 13:39:31Z thomas $
 
 import UserDict
 import email.Parser

@@ -1,9 +1,7 @@
 # vim:fileencoding=utf-8
 # Copyright (c) 2008-2009 gocept gmbh & co. kg
 # See also LICENSE.txt
-# $Id$
 """Parsing IMAP responses."""
-
 
 def iterate_pairs(iterable):
     iterable = iter(iterable)
