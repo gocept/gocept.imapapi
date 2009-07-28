@@ -19,6 +19,8 @@ top-level folders:
 A folder knows about its name, path, separator, and depth in the hierarchy:
 
 >>> INBOX = account.folders[u'INBOX']
+>>> INBOX
+<gocept.imapapi.folder.Folder object u'INBOX' at 0x12bde90>
 >>> INBOX.name
 u'INBOX'
 >>> INBOX.path
@@ -205,3 +207,28 @@ Message-Id: <62A3B8BC-8662-45A8-A342-B2745526C066@gocept.com>
 Content-Type: multipart/alternative; boundary=Apple-Mail-277--154605444
 Subject: 11 - AppleMail, Complex HTML with many images
 ...
+
+
+Deleting folders
+================
+
+When deleting a folder, all subfolders and their messages are deleted.
+
+>>> pprint(dict(baz.folders))
+{u'Boo': <gocept.imapapi.folder.Folder object u'INBOX/Baz/Boo' at 0x1392a30>}
+
+Delete the folder `baz` with its subfolder `boo`:
+
+>>> del INBOX.folders['Baz']
+>>> pprint(dict(INBOX.folders))
+{}
+
+Deleting a non-existent folder or the INBOX itself raises a `KeyError`:
+
+>>> del INBOX.folders['Foo']
+Traceback (most recent call last):
+KeyError: u'Foo'
+
+>>> del account.folders['INBOX']
+Traceback (most recent call last):
+KeyError: u'INBOX'
