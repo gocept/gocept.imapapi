@@ -112,6 +112,13 @@ class Folder(object):
             assert code == 'OK', 'Unexpected status code %s' % code
             self._message_count_cache = int(data[0])
 
+    def _delete_recursive(self):
+        for key in self.folders.keys():
+            self.folders[key]._delete_recursive()
+        code, data = self.server.delete(self.encoded_path)
+        if code != 'OK':
+            raise RuntimeError(self.path, gocept.imapapi.parser.unsplit(data))
+
     _uidvalidity = None
 
     @property
@@ -206,6 +213,15 @@ class Folders(UserDict.DictMixin):
         if self._keys is not None:
             self._keys.append(key)
             self._keys.sort()
+
+    def __delitem__(self, key):
+        key = unicode(key)
+        if key not in self.keys():
+            raise KeyError(key)
+        if (gocept.imapapi.interfaces.IAccount.providedBy(self.container)
+                and key.upper() == u'INBOX'):
+            raise KeyError(key)
+        self[key]._delete_recursive()
 
 
 def encode_modified_utf7(text):

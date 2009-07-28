@@ -83,6 +83,7 @@ def setUp(self):
 
     # Create the standard hierarchy for tests
     callIMAP(server, 'create', 'INBOX/Baz')
+    callIMAP(server, 'create', 'INBOX/Baz/Boo')
     callIMAP(server, 'create', 'Bar')
     callIMAP(server, 'create', 'F&APY-')
     status, data = server.logout()
