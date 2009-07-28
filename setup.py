@@ -29,7 +29,10 @@ setup(
     zip_safe=False,
     license='ZPL 2.1',
     namespace_packages=['gocept'],
-    install_requires=['setuptools',
-                      'zope.interface',
-                      'zope.schema'],
+    install_requires=[
+        'setuptools',
+        'zope.interface',
+        'zope.schema',
+        'rwproperty',
+    ],
 )

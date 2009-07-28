@@ -209,6 +209,34 @@ Subject: 11 - AppleMail, Complex HTML with many images
 ...
 
 
+Renaming folders
+================
+
+Renaming the `INBOX` is not supported:
+
+>>> INBOX.name = 'Foobar'
+Traceback (most recent call last):
+KeyError: "Renaming INBOX isn't supported."
+
+Any other folder can be renamed, e.g. a folder which is located next to the
+`INBOX`:
+
+>>> bar = account.folders[u'Bar']
+>>> bar.name = 'Foobar'
+>>> pprint(dict(account.folders))
+{u'Foobar': <gocept.imapapi.folder.Folder object u'Foobar' at 0x1392b90>,
+...
+
+or inside the `INBOX`:
+
+>>> baz.name = 'Foobaz'
+>>> pprint(dict(baz.folders))
+{u'Boo': <gocept.imapapi.folder.Folder object u'INBOX/Foobaz/Boo' at 0x1392a30>}
+
+Renaming back is also supported:
+
+>>> baz.name = 'Baz'
+
 Deleting folders
 ================
 

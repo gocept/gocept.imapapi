@@ -7,15 +7,18 @@ import gocept.imapapi.interfaces
 import gocept.imapapi.message
 import gocept.imapapi.parser
 import zope.interface
+import rwproperty
 
 
 class Folder(object):
 
     zope.interface.implements(gocept.imapapi.interfaces.IFolder)
 
+    _name = None
+
     def __init__(self, name=None, parent=None, separator=None,
                  encoded_name=None):
-        self.name = name
+        self._name = name
         self.encoded_name = encoded_name
         if encoded_name is None and name is not None:
             self.encoded_name = encode_modified_utf7(name)
@@ -34,6 +37,27 @@ class Folder(object):
         if self.server is not other.server:
             return False
         return self.path == other.path
+
+    @rwproperty.getproperty
+    def name(self):
+        return self._name
+
+    @rwproperty.setproperty
+    def name(self, name):
+        if self.name is None or self.name == name:
+            return
+        encoded_name = encode_modified_utf7(name)
+        if gocept.imapapi.interfaces.IFolder.providedBy(self.parent):
+            encoded_path = self.parent.encoded_path
+            encoded_path = '%s%s%s' % (
+                self.parent.encoded_path, self._separator, encoded_name)
+        else:
+            encoded_path = encoded_name
+        resp = self.server.rename(self.encoded_path, encoded_path)
+        if resp[0] == 'NO':
+            raise KeyError(resp[1][0])
+        self._name = name
+        self.encoded_name = encoded_name
 
     @property
     def server(self):
@@ -207,7 +231,7 @@ class Folders(UserDict.DictMixin):
                 "Could not create folder '%s': %s" % (path, data[0]))
         assert code == 'OK'
 
-        folder.name = key
+        folder._name = key
         folder.encoded_name = encoded_key
         folder.parent = self.container
         if self._keys is not None:
