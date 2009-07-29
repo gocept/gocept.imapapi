@@ -98,6 +98,13 @@ u'Subsubfolder'
 >>> subsubfolder.path
 u'Top level/Subfolder/Subsubfolder'
 
+If a folder with the name of the new folder already exists in path, a
+`KeyError` is raised:
+
+>>> top_level.folders[u'Subfolder'] = Folder()
+Traceback (most recent call last):
+KeyError: "Could not create folder 'Top level/Subfolder': Mailbox exists."
+
 
 Accessing messages
 ==================

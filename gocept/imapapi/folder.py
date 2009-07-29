@@ -227,7 +227,7 @@ class Folders(UserDict.DictMixin):
 
         code, data = self.container.server.create(path)
         if code == 'NO':
-            raise gocept.imapapi.interfaces.IMAPError(
+            raise KeyError(
                 "Could not create folder '%s': %s" % (path, data[0]))
         assert code == 'OK'
 
