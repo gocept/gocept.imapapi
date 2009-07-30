@@ -159,6 +159,22 @@ class Folder(object):
                 gocept.imapapi.parser.status(data[0])['UIDVALIDITY'])
         return self._uidvalidity
 
+    def move(self, target):
+        if target.server is self.server:
+            encoded_path = '%s%s%s' % (
+                target.encoded_path,
+                self.separator,
+                self.encoded_name)
+            resp = self.server.rename(self.encoded_path, encoded_path)
+            if resp[0] == 'NO':
+                raise KeyError(resp[1][0])
+            self.parent = target
+        else:
+            new = target.folders[self.name] = Folder()
+            for message in self.messages():
+                new.messages.add(message)
+            del self.parent[self.name]
+
 
 class Folders(UserDict.DictMixin):
     """A mapping object for accessing folders located in IFolderContainers.
