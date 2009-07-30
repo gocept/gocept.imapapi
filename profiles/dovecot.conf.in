@@ -1,0 +1,26 @@
+login_user = ${env:USER}
+log_path = ${buildout:directory}/var/log/dovecot.log
+info_log_path = ${buildout:directory}/var/log/dovecot-info.log
+login_chroot = no
+protocols = imap
+protocol imap {
+    listen = *:10143
+}
+ssl_disable = yes
+auth default {
+    mechanisms = plain
+    passdb passwd-file {
+        args = ${dovecotpasswd:output}
+    }
+    userdb static {
+        args = uid=${env:UID} gid=${env:GID} home=${buildout:directory}/var/mail/%u
+    }
+    user = ${env:USER}
+}
+auth_debug = yes
+mail_location = maildir:~
+namespace private {
+  separator = /
+  prefix = ""
+  inbox = yes
+}
