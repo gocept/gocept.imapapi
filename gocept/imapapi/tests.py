@@ -89,6 +89,10 @@ def setUp(self):
     status, data = server.logout()
     assert status == 'BYE'
 
+    server = imaplib.IMAP4('localhost', 10143)
+    server.login('test2', 'csdf')
+    setup_account(server)
+
 
 optionflags = (doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS |
                doctest.REPORT_NDIFF)

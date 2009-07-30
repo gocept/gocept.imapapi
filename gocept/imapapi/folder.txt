@@ -244,6 +244,62 @@ Renaming back is also supported:
 
 >>> baz.name = 'Baz'
 
+
+Moving folders
+==============
+
+We can move a folder to another place in the folder hierarchy. Folders can be
+moved to and from parent folders, to and from accounts as direct parents,
+within a single account and even between different accounts. Let's set up a
+second account and demonstrate this by moving a folder around a few times:
+
+>>> account2 = Account('localhost', 10143, 'test2', 'csdf')
+>>> pprint(dict(account2.folders))
+{u'INBOX': <gocept.imapapi.folder.Folder object u'INBOX' at 0xb7715a8c>}
+
+>>> account.folders[u'Foobar'].move(account.folders[u'INBOX'])
+>>> pprint(account.folders.keys())
+[u'F\xf6', u'INBOX', u'Top level']
+>>> pprint(dict(account.folders[u'INBOX'].folders))
+{u'Baz': <gocept.imapapi.folder.Folder object u'INBOX/Baz' at 0xb770eb6c>,
+ u'Foobar': <gocept.imapapi.folder.Folder object u'INBOX/Foobar' at 0xb770e52c>}
+
+>>> account.folders[u'INBOX'].folders[u'Foobar'].move(account)
+>>> pprint(account.folders[u'INBOX'].folders.keys())
+[u'Baz']
+>>> pprint(dict(account.folders))
+{u'Foobar': <gocept.imapapi.folder.Folder object u'Foobar' at 0xb770e60c>,
+ u'F\xf6': ..., u'INBOX': ..., u'Top level': ...}
+
+>>> account.folders[u'Foobar'].move(account2)
+>>> pprint(account.folders.keys())
+[u'F\xf6', u'INBOX', u'Top level']
+>>> pprint(dict(account2.folders))
+{u'Foobar': <gocept.imapapi.folder.Folder object u'Foobar' at 0xb770ec2c>,
+ u'INBOX': ...}
+
+Trying to move a folder to a parent that already contains another folder with
+the same name results in a KeyError:
+
+>>> account.folders[u'Foobar'] = Folder()
+>>> account.folders[u'Foobar'].move(account2)
+Traceback (most recent call last):
+KeyError: "Could not create folder 'Foobar': Mailbox exists."
+
+Moving folders implies moving all their content along. This works both when
+moving within one account and between different accounts as well:
+
+>>> account2.folders[u'Foobar'].folders[u'Quux'] = Folder()
+>>> account2.folders[u'Foobar'].move(account.folders[u'INBOX'])
+>>> pprint(dict(account.folders[u'INBOX'].folders[u'Foobar'].folders))
+{u'Quux': <gocept.imapapi.folder.Folder object u'INBOX/Foobar/Quux' at 0xb76279ac>}
+
+>>> del account.folders[u'Foobar']
+>>> account.folders[u'INBOX'].folders[u'Foobar'].move(account)
+>>> pprint(dict(account.folders[u'Foobar'].folders))
+{u'Quux': <gocept.imapapi.folder.Folder object u'Foobar/Quux' at 0xb774a18c>}
+
+
 Deleting folders
 ================
 
