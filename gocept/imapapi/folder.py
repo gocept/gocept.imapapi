@@ -161,19 +161,22 @@ class Folder(object):
 
     def move(self, target):
         if target.server is self.server:
-            encoded_path = '%s%s%s' % (
-                target.encoded_path,
-                self.separator,
-                self.encoded_name)
+            if gocept.imapapi.interfaces.IAccount.providedBy(target):
+                encoded_path = self.encoded_name
+            else:
+                encoded_path = '%s%s%s' % (
+                    target.encoded_path, self.separator, self.encoded_name)
             resp = self.server.rename(self.encoded_path, encoded_path)
             if resp[0] == 'NO':
                 raise KeyError(resp[1][0])
             self.parent = target
         else:
             new = target.folders[self.name] = Folder()
-            for message in self.messages():
+            for folder in self.folders.values():
+                folder.move(new)
+            for message in self.messages:
                 new.messages.add(message)
-            del self.parent[self.name]
+            del self.parent.folders[self.name]
 
 
 class Folders(UserDict.DictMixin):
