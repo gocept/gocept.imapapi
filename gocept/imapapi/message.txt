@@ -168,12 +168,12 @@ MIME headers on body parts
 
 >>> message = INBOX.messages.values()[2]
 >>> part = message.body.parts[0]
->>> print part.headers['Content-Disposition']
+>>> print part.mime_headers['Content-Disposition']
 None
 >>> part = message.body.parts[1]
->>> part.headers['Content-Disposition']
+>>> part.mime_headers['Content-Disposition']
 'inline'
->>> part.headers.params('Content-Disposition')
+>>> part.mime_headers.params('Content-Disposition')
 {'filename': 'img.jpg'}
 
 
