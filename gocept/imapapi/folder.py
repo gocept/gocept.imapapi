@@ -7,7 +7,6 @@ import gocept.imapapi.interfaces
 import gocept.imapapi.message
 import gocept.imapapi.parser
 import zope.interface
-import rwproperty
 
 
 class Folder(object):
@@ -38,12 +37,10 @@ class Folder(object):
             return False
         return self.path == other.path
 
-    @rwproperty.getproperty
-    def name(self):
+    def _get_name(self):
         return self._name
 
-    @rwproperty.setproperty
-    def name(self, name):
+    def _set_name(self, name):
         if self.name is None or self.name == name:
             return
         encoded_name = encode_modified_utf7(name)
@@ -58,6 +55,8 @@ class Folder(object):
             raise KeyError(resp[1][0])
         self._name = name
         self.encoded_name = encoded_name
+
+    name = property(_get_name, _set_name)
 
     @property
     def server(self):
