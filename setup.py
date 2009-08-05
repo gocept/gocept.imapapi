@@ -33,6 +33,5 @@ setup(
         'setuptools',
         'zope.interface',
         'zope.schema',
-        'rwproperty',
     ],
 )
