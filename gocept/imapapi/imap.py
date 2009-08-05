@@ -5,10 +5,8 @@
 
 import imaplib
 import logging
-import socket
 
 logger = logging.getLogger('gocept.imapapi.imap')
-socket.setdefaulttimeout(3) # set a default timeout for IMAP connections
 
 
 def callable_proxy(name, callable):
