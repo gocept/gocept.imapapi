@@ -91,7 +91,7 @@ class BodyPart(object):
         self._data = data
         self._parent = parent
         self.part_number = part_number
-        self.headers = MIMEHeaders(self.message, self.part_id)
+        self.mime_headers = MIMEHeaders(self.message, self.part_id)
 
     @property
     def server(self):
