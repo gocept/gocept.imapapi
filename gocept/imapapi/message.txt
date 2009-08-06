@@ -163,6 +163,22 @@ XXXTrue
 XXX>>> part['Content_Type']
 XXX'multipart/alternative'
 
+MIME headers on body parts
+--------------------------
+
+>>> message = INBOX.messages.values()[2]
+>>> part = message.body.parts[0]
+>>> print part.mime_headers['Content-Disposition']
+Traceback (most recent call last):
+KeyError: 'Content-Disposition'
+>>> print part.mime_headers.get('Content-Disposition')
+None
+>>> part = message.body.parts[1]
+>>> part.mime_headers['Content-Disposition']
+'inline'
+>>> part.mime_headers.params('Content-Disposition')
+{'filename': 'img.jpg'}
+
 
 Accessing parts using the Content-ID header
 -------------------------------------------

@@ -5,6 +5,7 @@ import cStringIO
 import UserDict
 import base64
 import email.Header
+import email.Message
 import email.Parser
 import gocept.imapapi.interfaces
 import gocept.imapapi.parser
@@ -53,15 +54,65 @@ class MessageHeaders(UserDict.DictMixin):
         self.headers = parser.parsestr(header_lines, True)
 
 
+class MIMEHeaders(object):
+
+    def __init__(self, message, part_id):
+        self.message = message
+        self.part_id = part_id
+        self.headers = self.fetch_headers()
+
+    def __getitem__(self, key):
+        header = self.headers.get_params(header=key)
+        if not header:
+            raise KeyError(key)
+        return header[0][0]
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def params(self, key):
+        header = self.headers.get_params(header=key)
+        if not header:
+            return {}
+        return dict(header[1:])
+
+    def fetch_headers(self):
+        if not self.part_id:
+            return
+        header_lines = _fetch(self.message.server, self.message.parent,
+                              self.message.UID,
+                              'BODY.PEEK[%s.MIME]' % self.part_id)
+        if header_lines != gocept.imapapi.parser.NIL:
+            return parser.parsestr(header_lines, True)
+        else:
+            return email.Message.Message()
+
+
 class BodyPart(object):
 
-    def __init__(self, data, parent):
+    def __init__(self, data, parent, part_number):
         self._data = data
         self._parent = parent
+        self.part_number = part_number
+        self.mime_headers = MIMEHeaders(self.message, self.part_id)
 
     @property
     def server(self):
         return self._parent.server
+
+    @property
+    def part_id(self):
+        if self.part_number is None:
+            return None
+        prefix = self._parent.part_id
+        if prefix is None:
+            prefix = ''
+        else:
+            prefix += '.'
+        return '%s%s' % (prefix, self.part_number)
 
     @property
     def message(self):
@@ -81,8 +132,8 @@ class BodyPart(object):
     @property
     def parts(self):
         parts = []
-        for part in self._data.get('parts', ()):
-            parts.append(BodyPart(part, self))
+        for i, part in enumerate(self._data.get('parts', ())):
+            parts.append(BodyPart(part, self, i+1))
         return parts
 
     def find_all(self, content_type):
@@ -161,6 +212,8 @@ class BodyPart(object):
                 pass
         raise KeyError(cid)
 
+    
+
 
 class MessagePart(object):
     """Message that is contained in a body part of type message/rfc822.
@@ -228,7 +281,7 @@ class Message(object):
             # not depend on the size of message text or attachedments.
             self._bodystructure = _fetch(
                 self.server, self.parent, self.UID, 'BODYSTRUCTURE')
-        return BodyPart(self._bodystructure, self)
+        return BodyPart(self._bodystructure, self, None)
 
 
 class Messages(UserDict.DictMixin):
