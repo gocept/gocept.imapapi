@@ -64,8 +64,14 @@ class MIMEHeaders(object):
     def __getitem__(self, key):
         header = self.headers.get_params(header=key)
         if not header:
-            return None
+            raise KeyError(key)
         return header[0][0]
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
     def params(self, key):
         header = self.headers.get_params(header=key)
