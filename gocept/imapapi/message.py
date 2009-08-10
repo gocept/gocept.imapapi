@@ -81,7 +81,7 @@ class MIMEHeaders(object):
 
     def fetch_headers(self):
         if not self.part_id:
-            return
+            return email.Message.Message()
         header_lines = _fetch(self.message.server, self.message.parent,
                               self.message.UID,
                               'BODY.PEEK[%s.MIME]' % self.part_id)

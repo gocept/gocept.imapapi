@@ -179,6 +179,12 @@ None
 >>> part.mime_headers.params('Content-Disposition')
 {'filename': 'img.jpg'}
 
+The body of a non-multipart message has empty MIME headers:
+
+>>> message = INBOX.messages.values()[0]
+>>> message.body.mime_headers.params('Content-Type')
+{}
+
 
 Accessing parts using the Content-ID header
 -------------------------------------------
