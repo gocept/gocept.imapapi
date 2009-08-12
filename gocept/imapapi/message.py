@@ -77,7 +77,14 @@ class MIMEHeaders(object):
         header = self.headers.get_params(header=key)
         if not header:
             return {}
-        return dict(header[1:])
+        params = {}
+        for param, value in header[1:]:
+            if isinstance(value, tuple):
+                charset, lang, value = value
+                if charset:
+                    value = value.decode(charset)
+            params[param] = value
+        return params
 
     def fetch_headers(self):
         if not self.part_id:

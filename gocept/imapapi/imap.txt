@@ -28,7 +28,7 @@ None
 After selecting a folder its path is memorized:
 
 >>> conn.select('INBOX')
-('OK', ['4'])
+('OK', ['5'])
 >>> conn.selected_path
 'INBOX'
 

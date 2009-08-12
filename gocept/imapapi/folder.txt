@@ -113,7 +113,7 @@ Messages can be retrieved from a folder using its `messages` attribute
 which provides a dictionary-like API:
 
 >>> INBOX.messages
-<4 messages of <gocept.imapapi.folder.Folder object u'INBOX' at 0xb78b3cac>>
+<5 messages of <gocept.imapapi.folder.Folder object u'INBOX' at 0xb78b3cac>>
 
 >>> pprint(dict(INBOX.messages))
 {'...-...': <gocept.imapapi.message.Message object u'INBOX/...-...' at 0x2162537>,
@@ -137,6 +137,7 @@ slicing:
 >>> messages = INBOX.messages.filtered(sort_by='SUBJECT')
 >>> [m.headers['Subject'] for m in messages]
 [u'11 - AppleMail, Complex HTML with many images',
+ u'34 - Claws, encoded attachment filename',
  u'Mail 1',
  u'Mail 2',
  u'Mail 3']
@@ -149,6 +150,7 @@ The sort direction can be reversed by specifying `sort_dir=='desc'`:
 [u'Mail 3',
  u'Mail 2',
  u'Mail 1',
+ u'34 - Claws, encoded attachment filename',
  u'11 - AppleMail, Complex HTML with many images']
 
 The message list returned from the filtering is lazy and supports
@@ -169,7 +171,8 @@ Other possible sort keys include:
 [u'',
  u'Zaphod <admin@example.com>',
  u'Christian Zagrodnick <cz@gocept.com>',
- u'test@localhost']
+ u'test@localhost',
+ u'Thomas Lotze <tl@gocept.com>']
 
 'From' real name, falling back to the address if no real name is given:
 
@@ -178,6 +181,7 @@ Other possible sort keys include:
 [u'',
  u'Christian Zagrodnick <cz@gocept.com>',
  u'test@localhost',
+ u'Thomas Lotze <tl@gocept.com>',
  u'Zaphod <admin@example.com>']
 
 
@@ -206,13 +210,11 @@ To delete a message from a folder, you delete it using the `del` operator:
 -1
 >>> message = INBOX.messages.values()[-1]
 >>> print message.raw[:10000]
-Return-Path: <cz@gocept.com>
-...
-From: Christian Zagrodnick <cz@gocept.com>
-To: Christian Theune <ct@gocept.com>
-Message-Id: <62A3B8BC-8662-45A8-A342-B2745526C066@gocept.com>
-Content-Type: multipart/alternative; boundary=Apple-Mail-277--154605444
-Subject: 11 - AppleMail, Complex HTML with many images
+Date: Tue, 11 Aug 2009 16:29:50 +0200
+From: Thomas Lotze <tl@gocept.com>
+To: joe@example.com
+Subject: 34 - Claws, encoded attachment filename
+Message-ID: <20090811162950.606d0776@krusty.ws.whq.gocept.com>
 ...
 
 
