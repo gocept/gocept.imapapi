@@ -1,0 +1,42 @@
+Date: Tue, 11 Aug 2009 16:29:50 +0200
+From: Thomas Lotze <tl@gocept.com>
+To: joe@example.com
+Subject: 34 - Claws, encoded attachment filename
+Message-ID: <20090811162950.606d0776@krusty.ws.whq.gocept.com>
+X-Mailer: Claws Mail 3.5.0 (GTK+ 2.14.4; i486-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/RG5stUweMY166d01w5ftmcu"
+
+--MP_/RG5stUweMY166d01w5ftmcu
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+Hello world.
+
+Viele Grüße,
+Thomas Lotze
+
+-- 
+Thomas Lotze · tl@gocept.com
+gocept gmbh & co. kg · forsterstraße 29 · 06112 halle (saale) · germany
+http://gocept.com · tel +49 345 1229889 0 · fax +49 345 1229889 1
+Zope and Plone consulting and development
+
+--MP_/RG5stUweMY166d01w5ftmcu
+Content-Type: image/png; name="______.png"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename*=UTF-8''%C3%A4%C3%B6%C3%BC%2Epng
+
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QAqwBXADpRS/R/AAAACXBI
+WXMAAA9hAAAPYQGoP6dpAAAAB3RJTUUH1gIQESYeBl8mbQAAAZxJREFUOMvdks1qU1EUhb8br+lN
+LZWGlgR/an+S2mkVG/ENFB/HiU6MD5BJCOjAsVI6NCSG+hilg1ZBiagDddZ4/vY+DpLcGsSBI8EF
+GzYH1uJbhw3/Wkmn3XqsGpsigkggiKAiyGRCONtFFJEwfhdpPn32/Amddiv+SaoaQwgxhBCdc9Fa
+G0UkWmtjp92KAAWAQb8HgHMOay3GGKy1OOfw3uO9J4SAqlIoFDgYvM4rFLz31OtbDPo9isUiqoqq
+/oItqCpJkpBlGYN+j50bN/HejwOMMVxZXWWjtsGbgwGlUmkmhMmeZRnd7iuub2+zvLKCMQaA1DkH
+QLV6mRAi/V6Xu/fu//bb+3svubXbYKm8lNcdB0xQRIRKpUK5XGZ/70WOCCBRuN24MxM49aWqmgck
+SYIxI+bnF2js7jBXWiBNi7w7OeLb1+8sXlzMCaa+vEIkcnR4yOj0dMZ8Lj3PtfUaXz4NGX78DECt
+vnVWYYo0fP+Bzc0axVRnzABz2QWql64C4AO8PT7Oq6Tra2vNRw8fNP/2hEejH03+D/0EXEkUjrXu
+Rn0AAAAASUVORK5CYII=
+
+--MP_/RG5stUweMY166d01w5ftmcu--

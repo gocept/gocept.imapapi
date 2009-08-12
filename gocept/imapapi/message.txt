@@ -185,6 +185,12 @@ The body of a non-multipart message has empty MIME headers:
 >>> message.body.mime_headers.params('Content-Type')
 {}
 
+Non-ASCII attachment filenames should come out decoded:
+
+>>> message = INBOX.messages.values()[4]
+>>> message.body.parts[1].mime_headers.params('Content-Disposition')
+{'filename': u'\xe4\xf6\xfc.png'}
+
 
 Accessing parts using the Content-ID header
 -------------------------------------------
@@ -306,11 +312,11 @@ False
 We can also delete multiple messages at once:
 
 >>> len(INBOX.messages)
-4
+5
 >>> keys = INBOX.messages.keys()[1:3]
 >>> del INBOX.messages[1:3]
 >>> len(INBOX.messages)
-2
+3
 >>> for key in keys:
 ...     print bool(key in INBOX.messages)
 False
