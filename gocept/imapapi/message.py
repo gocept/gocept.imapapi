@@ -100,6 +100,8 @@ class MIMEHeaders(object):
 
 class BodyPart(object):
 
+    zope.interface.implements(gocept.imapapi.interfaces.IBodyPart)
+
     def __init__(self, data, parent, part_number):
         self._data = data
         self._parent = parent
@@ -219,8 +221,6 @@ class BodyPart(object):
                 pass
         raise KeyError(cid)
 
-    
-
 
 class MessagePart(object):
     """Message that is contained in a body part of type message/rfc822.
@@ -231,6 +231,7 @@ class MessagePart(object):
     def __init__(self, body):
         self.headers = MessageHeaders(body.message, body['envelope'])
         self.body = body.parts[0]
+        self.parent = body
 
     @property
     def text(self):
