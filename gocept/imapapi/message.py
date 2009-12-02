@@ -517,6 +517,7 @@ class Flags(object):
         if data is None:
             code, data = self.server.uid('FETCH', self.message.UID, 'FLAGS')
             assert code == 'OK'
+        __traceback_info__ = 'Server response: %r' % data
         self.flags = gocept.imapapi.parser.fetch(data)['FLAGS']
 
     def _store(self, flag, sign):
