@@ -284,9 +284,9 @@ class Message(object):
     def body(self):
         if self._bodystructure is None:
             # We may safely cache the body structure as RfC 3501 asserts that
-            # this information must not change for any particular message. We
-            # can afford to do so since the size of body structure data does
-            # not depend on the size of message text or attachedments.
+            # this information must not change for any given message. We can
+            # afford to do so since the size of body structure data does not
+            # depend on the size of message text or attachments.
             self._bodystructure = _fetch(
                 self.server, self.parent, self.UID, 'BODYSTRUCTURE')
         return BodyPart(self._bodystructure, self, None)
