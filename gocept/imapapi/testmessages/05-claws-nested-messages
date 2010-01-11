@@ -1,0 +1,135 @@
+Return-Path: <tl@gocept.com>
+Received: from mail.gocept.net ([unix socket])
+	 by mail.gocept.net (Cyrus v2.3.9-Gentoo) with LMTPA;
+	 Wed, 03 Dec 2008 10:41:19 +0100
+X-Sieve: CMU Sieve 2.3
+Received: from localhost (localhost [127.0.0.1])
+	by mail.gocept.net (Postfix) with ESMTP id 3F9873079DA1
+	for <tl+c@gocept.com>; Wed,  3 Dec 2008 10:41:19 +0100 (CET)
+X-Quarantine-ID: <Kn17WHBrXMRH>
+X-Virus-Scanned: amavisd-new at gocept.com
+X-Amavis-Alert: BAD HEADER, MIME error: error: illegal encoding [base64] for
+	MIME type message/rfc822
+Received: from mail.gocept.net ([127.0.0.1])
+	by localhost (mail.gocept.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Kn17WHBrXMRH for <tl+c@gocept.com>;
+	Wed,  3 Dec 2008 10:41:18 +0100 (CET)
+Received: from krusty (krusty.ws.whq.gocept.com [195.62.106.104])
+	(Authenticated sender: tl@gocept.com)
+	by mail.gocept.net (Postfix) with ESMTPSA
+	for <tl+c@gocept.com>; Wed,  3 Dec 2008 10:41:18 +0100 (CET)
+Date: Wed, 3 Dec 2008 10:41:17 +0100
+From: Thomas Lotze <tl@gocept.com>
+To: tl+c@gocept.com
+Subject: Fw: Original message
+Message-ID: <20081203104117.32a3da1e@krusty>
+X-Mailer: Claws Mail 3.5.0 (GTK+ 2.14.4; i486-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/erMYt_YoMSdGGCwTSonTJIx"
+
+--MP_/erMYt_YoMSdGGCwTSonTJIx
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+This forwards the forwarded original message.
+
+Viele Grüße,
+Thomas Lotze
+
+--MP_/erMYt_YoMSdGGCwTSonTJIx
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+Return-Path: <tl@gocept.com>
+Received: from mail.gocept.net ([unix socket])
+	 by mail.gocept.net (Cyrus v2.3.9-Gentoo) with LMTPA;
+	 Wed, 03 Dec 2008 10:40:09 +0100
+X-Sieve: CMU Sieve 2.3
+Received: from localhost (localhost [127.0.0.1])
+	by mail.gocept.net (Postfix) with ESMTP id 8B3AD3079DA1
+	for <tl+b@gocept.com>; Wed,  3 Dec 2008 10:40:09 +0100 (CET)
+X-Virus-Scanned: amavisd-new at gocept.com
+Received: from mail.gocept.net ([127.0.0.1])
+	by localhost (mail.gocept.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id z18SHAN+XbgS for <tl+b@gocept.com>;
+	Wed,  3 Dec 2008 10:40:08 +0100 (CET)
+Received: from krusty (krusty.ws.whq.gocept.com [195.62.106.104])
+	(Authenticated sender: tl@gocept.com)
+	by mail.gocept.net (Postfix) with ESMTPSA
+	for <tl+b@gocept.com>; Wed,  3 Dec 2008 10:40:08 +0100 (CET)
+Date: Wed, 3 Dec 2008 10:40:08 +0100
+From: Thomas Lotze <tl@gocept.com>
+To: tl+b@gocept.com
+Subject: Fw: Original message
+Message-ID: <20081203104008.739fa181@krusty>
+X-Mailer: Claws Mail 3.5.0 (GTK+ 2.14.4; i486-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/5_cm+e/ov.5AEpFDD2OvM2l"
+
+--MP_/5_cm+e/ov.5AEpFDD2OvM2l
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+This forwards the original message.
+
+Viele Grüße,
+Thomas Lotze
+
+--MP_/5_cm+e/ov.5AEpFDD2OvM2l
+Content-Type: message/rfc822
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+Return-Path: <tl@gocept.com>
+Received: from mail.gocept.net ([unix socket])
+	 by mail.gocept.net (Cyrus v2.3.9-Gentoo) with LMTPA;
+	 Wed, 03 Dec 2008 10:35:06 +0100
+X-Sieve: CMU Sieve 2.3
+Received: from localhost (localhost [127.0.0.1])
+	by mail.gocept.net (Postfix) with ESMTP id 1A00F3079DA1
+	for <tl@gocept.com>; Wed,  3 Dec 2008 10:35:06 +0100 (CET)
+X-Virus-Scanned: amavisd-new at gocept.com
+Received: from mail.gocept.net ([127.0.0.1])
+	by localhost (mail.gocept.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Ann2AolTgx3x for <tl@gocept.com>;
+	Wed,  3 Dec 2008 10:35:05 +0100 (CET)
+Received: from krusty (krusty.ws.whq.gocept.com [195.62.106.104])
+	(Authenticated sender: tl@gocept.com)
+	by mail.gocept.net (Postfix) with ESMTPSA
+	for <tl@gocept.com>; Wed,  3 Dec 2008 10:35:05 +0100 (CET)
+Date: Wed, 3 Dec 2008 10:35:04 +0100
+From: Thomas Lotze <tl@gocept.com>
+To: tl@gocept.com
+Subject: Original message
+Message-ID: <20081203103504.6fa0a5f2@krusty>
+X-Mailer: Claws Mail 3.5.0 (GTK+ 2.14.4; i486-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/tYYB91d5Q5rompATj/FTQfX"
+
+--MP_/tYYB91d5Q5rompATj/FTQfX
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+
+This is a multipart/mixed message.
+
+Viele Grüße,
+Thomas Lotze
+
+--MP_/tYYB91d5Q5rompATj/FTQfX
+Content-Type: text/plain; name=textfile
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment; filename=textfile
+
+This is a plain text file.
+It contains two lines.
+
+--MP_/tYYB91d5Q5rompATj/FTQfX--
+
+--MP_/5_cm+e/ov.5AEpFDD2OvM2l--
+
+
+--MP_/erMYt_YoMSdGGCwTSonTJIx--
