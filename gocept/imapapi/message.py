@@ -278,17 +278,20 @@ class Message(object):
     def raw(self):
         return _fetch(self.server, self.parent, self.UID, 'BODY.PEEK[]')
 
-    _bodystructure = None
-
+    __bodystructure = None
     @property
-    def body(self):
-        if self._bodystructure is None:
+    def _bodystructure(self):
+        if self.__bodystructure is None:
             # We may safely cache the body structure as RfC 3501 asserts that
             # this information must not change for any given message. We can
             # afford to do so since the size of body structure data does not
             # depend on the size of message text or attachments.
-            self._bodystructure = _fetch(
+            self.__bodystructure = _fetch(
                 self.server, self.parent, self.UID, 'BODYSTRUCTURE')
+        return self.__bodystructure
+
+    @property
+    def body(self):
         return BodyPart(self._bodystructure, self, None)
 
 
