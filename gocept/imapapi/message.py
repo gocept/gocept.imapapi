@@ -221,6 +221,40 @@ class BodyPart(object):
                 pass
         raise KeyError(cid)
 
+    @property
+    def estimated_attachments(self):
+        major, minor = self['content_type'].split(';', 1)[0].split('/')
+        attachments = 0
+        if major == 'message':
+            # An attached message counts as an attachment itself and
+            # additionally contributes its attachments in turn.
+            attachments += 1
+        if major == 'text':
+            # A text part counts as an attachment depending on its
+            # content-disposition.
+            cd_header = self.mime_headers.get('Content-Disposition', '')
+            cd = cd_header.split(';', 1)[0]
+            if cd == 'attachment':
+                attachments += 1
+        elif major in ('multipart', 'message'):
+            # Now handle the various multipart sub-types.
+            if self.parts:
+                if minor == 'alternative':
+                    attachments += self.parts[-1].estimated_attachments
+                elif minor == 'signed':
+                    attachments += self.parts[0].estimated_attachments
+                elif minor == 'encrypted':
+                    attachments += 1
+                else:
+                    # Unknown multipart sub-types are treated as
+                    # multipart/mixed.
+                    attachments += sum(part.estimated_attachments
+                                       for part in self.parts)
+        else:
+            # Any other single-part can only be an attachment.
+            attachments += 1
+        return attachments
+
 
 class MessagePart(object):
     """Message that is contained in a body part of type message/rfc822.
@@ -293,6 +327,10 @@ class Message(object):
     @property
     def body(self):
         return BodyPart(self._bodystructure, self, None)
+
+    @property
+    def estimated_attachments(self):
+        return self.body.estimated_attachments
 
 
 class Messages(UserDict.DictMixin):
