@@ -415,7 +415,8 @@ class Messages(UserDict.DictMixin):
         message.flags.add('\\Deleted')
         self.container._select()
         self.container.server.expunge()
-        self.container._message_count_cache -= 1
+        if self.container._message_count_cache is not None:
+            self.container._message_count_cache -= 1
 
     def __delslice__(self, begin, end):
         self._delslice(slice(begin, end))
@@ -430,7 +431,8 @@ class Messages(UserDict.DictMixin):
             message.flags.add('\\Deleted')
         self.container._select()
         self.container.server.expunge()
-        self.container._message_count_cache -= len(keys)
+        if self.container._message_count_cache is not None:
+            self.container._message_count_cache -= len(keys)
 
 
     def add(self, message):
