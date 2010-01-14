@@ -347,6 +347,15 @@ We can also delete multiple messages at once:
 False
 False
 
+>>> keys = INBOX.messages.keys()[1:3]
+>>> INBOX.messages.delete(keys)
+>>> len(INBOX.messages)
+2
+>>> for key in keys:
+...     print bool(key in INBOX.messages)
+False
+False
+
 Deleting all:
 
 >>> del INBOX.messages[:]

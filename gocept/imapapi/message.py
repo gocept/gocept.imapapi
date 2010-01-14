@@ -421,10 +421,13 @@ class Messages(UserDict.DictMixin):
         self._delslice(slice(begin, end))
 
     def _delslice(self, slice):
+        keys = self.keys()[slice.start:slice.stop:slice.step]
+        self.delete(keys)
+
+    def delete(self, keys):
         # XXX This method should not access the message count cache of its
         # container directly. Ideally, it should not even have to care about
         # the message count; this is what EXPUNGE responses are for.
-        keys = self.keys()[slice.start:slice.stop:slice.step]
         for key in keys:
             message = self[key]
             message.flags.add('\\Deleted')
