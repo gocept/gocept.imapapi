@@ -477,8 +477,10 @@ class Messages(UserDict.DictMixin):
             lines = item['BODY[HEADER.FIELDS (%s)]' % field]
             line = lines.splitlines()[0]
             if line:
-                assert line.startswith('From: ')
-                value = line[6:]
+                assert line.upper().startswith(field.upper() + ':'), \
+                    'Expected %r line, got %r.' % (
+                    field, ':' in line and line.split(':')[0]+': xxx' or line)
+                value = line.split(':', 1)[1].lstrip()
                 item['key'] = key(value)
         result = [item['UID']
                   for item in sorted(items, key=lambda item: item.get('key'))]
