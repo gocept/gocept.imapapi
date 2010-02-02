@@ -188,6 +188,18 @@ Other possible sort keys include:
  u'Thomas Lotze <tl@gocept.com>',
  u'Zaphod <admin@example.com>']
 
+Calling the ``filtered`` method with an empty sort key returns the messages in
+the order they have inside the folder:
+
+>>> messages = INBOX.messages.filtered(sort_by='')
+>>> [m.headers['From'] for m in messages]
+[u'test@localhost',
+ u'',
+ u'Zaphod <admin@example.com>',
+ u'Christian Zagrodnick <cz@gocept.com>',
+ u'Thomas Lotze <tl@gocept.com>',
+ u'Thomas Lotze <tl@gocept.com>']
+
 
 Appending messages to folders
 =============================
