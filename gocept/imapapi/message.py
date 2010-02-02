@@ -576,8 +576,10 @@ class Flags(object):
         code, data = self.server.uid(
             'STORE', '%s' % self.message.UID, '%sFLAGS' % sign, '(%s)' % flag)
         assert code == 'OK'
-        __traceback_info__ = 'Server response to STORE uid %sFLAGS (%s): %s, %r' % (sign, flag, code, data)
-        self._update(data)
+        if sign == '+':
+            self.flags.add(flag)
+        else:
+            self.flags.discard(flag)
 
 
 def _fetch(server, mailbox, msg_uid, data_item, chunk_no=None):
