@@ -454,6 +454,10 @@ class Messages(UserDict.DictMixin):
         self.container._select()
         if sort_criterion == 'FROM_NAME':
             uids = self._filtered_by_header('FROM', self.from_name, sort_dir)
+        elif not sort_criterion:
+            uids = [gocept.imapapi.parser.fetch(line)['UID']
+                    for line in self._fetch_lines('%s:%s' % (1, len(self)),
+                                                    '(UID)')]
         else:
             uids = self._filtered_by_imap(sort_criterion, sort_dir)
         uids = [self._key(uid) for uid in uids]
