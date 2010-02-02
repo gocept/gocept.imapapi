@@ -259,7 +259,7 @@ flags(['\\Seen'])
 
 >>> message.flags.add(r'\Answered')
 >>> message.flags
-flags(['\\Seen', '\\Answered'])
+flags(['\\Answered', '\\Seen'])
 >>> message.server.uid('FETCH', str(message.UID), 'FLAGS')
 ('OK', ['4 (UID ... FLAGS (\\Answered \\Seen))'])
 
