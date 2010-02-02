@@ -559,7 +559,9 @@ class Flags(object):
         self._store(flag, '-')
 
     def _update(self, data=None):
-        if data is None:
+        if data is None or data == [None]:
+            # None: called without a previous FETCH or STORE
+            # [None]: empty FETCH response
             code, data = self.server.uid('FETCH', self.message.UID, 'FLAGS')
             assert code == 'OK'
             __traceback_info__ = 'Server response: %s, %r' % (code, data)
@@ -591,6 +593,7 @@ def _fetch(server, mailbox, msg_uid, data_item, chunk_no=None):
     data_item_req = '(%s)' % data_item_req
     code, data = server.uid('FETCH', msg_uid, data_item_req)
     assert code == 'OK'
+    __traceback_info__ = 'Server response to FETCH uid %s: %s, %r' % (data_item_req, code, data)
     data = gocept.imapapi.parser.fetch(data)
     return data[data_item_resp]
 
