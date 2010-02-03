@@ -478,7 +478,7 @@ class Messages(UserDict.DictMixin):
         assert code == 'OK'
         items = gocept.imapapi.parser.fetch(data, fetch_all=True)
         for item in items:
-            lines = item['BODY[HEADER.FIELDS (%s)]' % field]
+            lines = item.get('BODY[HEADER.FIELDS (%s)]' % field, '')
             line = lines.splitlines()[0]
             if line:
                 assert line.upper().startswith(field.upper() + ':'), \
