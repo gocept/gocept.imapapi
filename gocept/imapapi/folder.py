@@ -118,7 +118,7 @@ class Folder(object):
         """
         if self._message_count_cache is None:
             code, data = self.server.status(self.encoded_path, "(MESSAGES)")
-            assert code == 'OK'
+            assert code == 'OK', '%s %r' % (code, data)
             self._message_count_cache = (
                 gocept.imapapi.parser.status(data[0])['MESSAGES'])
         return self._message_count_cache
