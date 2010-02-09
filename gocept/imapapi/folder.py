@@ -272,6 +272,9 @@ def encode_modified_utf7(text):
     >>> encode_modified_utf7(u'\xe4\xf6\xfc')
     '&AOQA9gD8-'
 
+    >>> encode_modified_utf7(u'as-d\xe4f')
+    'as-d&AOQ-f'
+
     """
     def encode_buffer(buffer):
         return buffer.encode('utf7').replace('/', ',').replace('+', '&')
@@ -305,6 +308,12 @@ def decode_modified_utf7(bytes):
     >>> decode_modified_utf7('\xef')
     u'\\xef'
 
+    Regression: Strings which contain a UTF7-encoded character somewhere after
+    a dash used to be decoded wrong:
+
+    >>> decode_modified_utf7('as-d&AOQ-f')
+    u'as-d\xe4f'
+
     """
     def decode_utf7(buffer):
         return buffer.replace('&', '+').replace(',', '/').decode('utf7')
@@ -320,7 +329,7 @@ def decode_modified_utf7(bytes):
         start = bytes.index('&')
         text += decode_ascii(bytes[:start])
 
-        stop = bytes.index('-') + 1
+        stop = bytes.index('-', start) + 1
         if stop == start + 2:
             text += u'&'
         else:
