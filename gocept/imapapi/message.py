@@ -479,6 +479,7 @@ class Messages(UserDict.DictMixin):
         items = gocept.imapapi.parser.fetch(data, fetch_all=True)
         for item in items:
             lines = item.get('BODY[HEADER.FIELDS (%s)]' % field, '')
+            __traceback_info__ = 'BODY[HEADER.FIELDS (%s)]: %r' % (field, lines)
             line = lines.splitlines()[0]
             if line:
                 assert line.upper().startswith(field.upper() + ':'), \
