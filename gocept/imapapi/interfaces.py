@@ -69,7 +69,7 @@ class IMessages(zope.interface.common.mapping.IMapping):
     def add(message):
         """Add a message to the container."""
 
-    def filtered(sort_by, sort_dir='asc'):
+    def filtered(sort_by=None, sort_dir='asc'):
         """Return a sequence of all messages that pass the filter."""
 
 

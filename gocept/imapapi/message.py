@@ -434,7 +434,6 @@ class Messages(UserDict.DictMixin):
         if self.container._message_count_cache is not None:
             self.container._message_count_cache -= len(keys)
 
-
     def add(self, message):
         # XXX This method should not access the message count cache of its
         # container directly. Ideally, it should not even have to care about
@@ -448,9 +447,9 @@ class Messages(UserDict.DictMixin):
         if self.container._message_count_cache is not None:
             self.container._message_count_cache += 1
 
-    def filtered(self, sort_by, sort_dir='asc'):
+    def filtered(self, sort_by=None, sort_dir='asc'):
         # XXX make API for sort_by not IMAP-syntax specific.
-        sort_criterion = sort_by.upper()
+        sort_criterion = (sort_by or '').upper()
         self.container._select()
         if sort_criterion == 'FROM_NAME':
             uids = self._filtered_by_header('FROM', self.from_name, sort_dir)
