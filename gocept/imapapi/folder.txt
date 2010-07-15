@@ -260,6 +260,22 @@ Filtering
 >>> [m.headers['Subject'] for m in messages]
 [u'" DELETE * FROM mailbox']
 
+Filtering and sorting combined
+==============================
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value='1', sort_by='SUBJECT')
+>>> [m.headers['Subject'] for m in messages]
+[u'11 - AppleMail, Complex HTML with many images', u'Mail 1']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value='1', sort_by='FROM_NAME')
+>>> [m.headers['Subject'] for m in messages]
+[u'11 - AppleMail, Complex HTML with many images', u'Mail 1']
+
+
 
 Appending messages to folders
 =============================
