@@ -453,7 +453,10 @@ class Messages(UserDict.DictMixin):
         sort_criterion = (sort_by or 'ARRIVAL').upper()
         self.container._select()
         if sort_criterion == 'FROM_NAME':
-            uids = self._filtered_by_header('FROM', self.from_name, sort_dir)
+            # we want to sort by *name* and address, but since IMAP SORT only
+            # support sorting by address, we need to roll our own.
+            uids = self._filtered_by_header(
+                'FROM', self.from_name, sort_dir, filter_by, filter_value)
         else:
             uids = self._filtered_by_imap(
                 sort_criterion, sort_dir, filter_by, filter_value)
@@ -494,9 +497,13 @@ class Messages(UserDict.DictMixin):
         else:
             raise ValueError('Invalid search criterion %r' % filter_by)
 
-    def _filtered_by_header(self, field, key, sort_dir):
+    def _filtered_by_header(self, field, key, sort_dir,
+                            filter_by, filter_value):
+        uids = self._filtered_by_imap(
+            'ARRIVAL', 'asc', filter_by, filter_value)
+        uids = ','.join(str(uid) for uid in uids)
         code, data = self.container.server.uid(
-            'FETCH', '1:*', '(BODY[HEADER.FIELDS (%s)])' % field)
+            'FETCH', uids, '(BODY[HEADER.FIELDS (%s)])' % field)
         assert code == 'OK'
         items = gocept.imapapi.parser.fetch(data, fetch_all=True)
         for item in items:
