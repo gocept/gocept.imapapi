@@ -548,11 +548,14 @@ class LazyMessageSequence(object):
 
     def __getslice__(self, i, j):
         messages = self.messages.by_uids(self.uids[i:j])
-        messages.sort(key=lambda x:self.uids.index(x.name))
+        messages.sort(key=lambda x: self.uids.index(x.name))
         return messages
 
     def __getitem__(self, i):
         return self.messages[self.uids[i]]
+
+    def __len__(self):
+        return len(self.uids)
 
 
 def update(func):

@@ -162,6 +162,8 @@ The sort direction can be reversed by specifying `sort_dir=='desc'`:
 The message list returned from the filtering is lazy and supports
 slicing and item access:
 
+>>> len(messages)
+8
 >>> [m.headers['Subject'] for m in messages[3:5]]
 [u'Mail 2', u'Mail 1']
 
