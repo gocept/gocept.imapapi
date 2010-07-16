@@ -262,6 +262,12 @@ Filtering
 >>> [m.headers['Subject'] for m in messages]
 [u'" DELETE * FROM mailbox']
 
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_TO_OR_CC,
+...     filter_value='')
+>>> len(messages)
+8
+
 Filtering and sorting combined
 ==============================
 
