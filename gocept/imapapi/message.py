@@ -475,7 +475,7 @@ class Messages(UserDict.DictMixin):
         return uids
 
     def _search_criteria(self, filter_by, filter_value):
-        if filter_by is None:
+        if filter_by is None or not filter_value:
             return ('ALL',)
 
         filter_value = filter_value.replace('\\', '\\\\')
