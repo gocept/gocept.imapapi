@@ -113,7 +113,7 @@ Messages can be retrieved from a folder using its `messages` attribute
 which provides a dictionary-like API:
 
 >>> INBOX.messages
-<6 messages of <gocept.imapapi.folder.Folder object u'INBOX' at 0xb78b3cac>>
+<8 messages of <gocept.imapapi.folder.Folder object u'INBOX' at 0xb78b3cac>>
 
 >>> pprint(dict(INBOX.messages))
 {'...-...': <gocept.imapapi.message.Message object u'INBOX/...-...' at 0x2162537>,
@@ -136,32 +136,38 @@ slicing:
 
 >>> messages = INBOX.messages.filtered(sort_by='SUBJECT')
 >>> [m.headers['Subject'] for m in messages]
-[u'11 - AppleMail, Complex HTML with many images',
+[u'" DELETE * FROM mailbox',
+ u'11 - AppleMail, Complex HTML with many images',
  u'34 - Claws, encoded attachment filename',
  u'Mail 1',
  u'Mail 2',
  u'Mail 3',
- u'Fw: Original message']
+ u'Fw: Original message',
+ u'Text \xfc']
 
 The sort direction can be reversed by specifying `sort_dir=='desc'`:
 
 >>> messages = INBOX.messages.filtered(
 ...     sort_by='SUBJECT', sort_dir='desc')
 >>> [m.headers['Subject'] for m in messages]
-[u'Fw: Original message',
+[u'Text \xfc',
+ u'Fw: Original message',
  u'Mail 3',
  u'Mail 2',
  u'Mail 1',
  u'34 - Claws, encoded attachment filename',
- u'11 - AppleMail, Complex HTML with many images']
+ u'11 - AppleMail, Complex HTML with many images',
+ u'" DELETE * FROM mailbox']
 
 The message list returned from the filtering is lazy and supports
 slicing and item access:
 
->>> [m.headers['Subject'] for m in messages[2:4]]
+>>> len(messages)
+8
+>>> [m.headers['Subject'] for m in messages[3:5]]
 [u'Mail 2', u'Mail 1']
 
->>> messages[2].headers['Subject']
+>>> messages[3].headers['Subject']
 u'Mail 2'
 
 Other possible sort keys include:
@@ -174,8 +180,10 @@ Other possible sort keys include:
  u'Zaphod <admin@example.com>',
  u'Christian Zagrodnick <cz@gocept.com>',
  u'test@localhost',
+ u'test@localhost',
  u'Thomas Lotze <tl@gocept.com>',
- u'Thomas Lotze <tl@gocept.com>']
+ u'Thomas Lotze <tl@gocept.com>',
+ u'umlaut@localhost']
 
 'From' real name, falling back to the address if no real name is given:
 
@@ -184,21 +192,97 @@ Other possible sort keys include:
 [u'',
  u'Christian Zagrodnick <cz@gocept.com>',
  u'test@localhost',
+ u'test@localhost',
  u'Thomas Lotze <tl@gocept.com>',
  u'Thomas Lotze <tl@gocept.com>',
+ u'umlaut@localhost',
  u'Zaphod <admin@example.com>']
 
-Calling the ``filtered`` method with an empty sort key returns the messages in
-the order they have inside the folder:
+Calling the ``filtered`` method without a sort key returns the messages sorted
+by date:
 
->>> messages = INBOX.messages.filtered(sort_by='')
+>>> messages = INBOX.messages.filtered()
 >>> [m.headers['From'] for m in messages]
 [u'test@localhost',
  u'',
  u'Zaphod <admin@example.com>',
  u'Christian Zagrodnick <cz@gocept.com>',
  u'Thomas Lotze <tl@gocept.com>',
- u'Thomas Lotze <tl@gocept.com>']
+ u'Thomas Lotze <tl@gocept.com>',
+ u'umlaut@localhost',
+ u'test@localhost']
+
+Filtering
+=========
+
+>>> import gocept.imapapi.interfaces
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value='Mail 1')
+>>> [m.headers['Subject'] for m in messages]
+[u'Mail 1']
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value='1')
+>>> [m.headers['Subject'] for m in messages]
+[u'Mail 1', u'11 - AppleMail, Complex HTML with many images']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SENDER,
+...     filter_value='Zaphod')
+>>> [m.headers['From'] for m in messages]
+[u'Zaphod <admin@example.com>']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT_OR_SENDER,
+...     filter_value='Zaphod')
+>>> [m.headers['From'] for m in messages]
+[u'Zaphod <admin@example.com>']
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT_OR_SENDER,
+...     filter_value='Mail 1')
+>>> [m.headers['Subject'] for m in messages]
+[u'Mail 1']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_TO_OR_CC,
+...     filter_value='Thomas')
+>>> [m.headers['To'] for m in messages]
+[u'Thomas Lotze <tl@gocept.com>', u'Thomas Lotze <tl@gocept.com>']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value=u'\xfc')
+>>> [m.headers['Subject'] for m in messages]
+[u'Text \xfc']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value=u'" DELETE * FROM mailbox')
+>>> [m.headers['Subject'] for m in messages]
+[u'" DELETE * FROM mailbox']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_TO_OR_CC,
+...     filter_value='')
+>>> len(messages)
+8
+
+Filtering and sorting combined
+==============================
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value='1', sort_by='SUBJECT')
+>>> [m.headers['Subject'] for m in messages]
+[u'11 - AppleMail, Complex HTML with many images', u'Mail 1']
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SUBJECT,
+...     filter_value='1', sort_by='FROM_NAME')
+>>> [m.headers['Subject'] for m in messages]
+[u'11 - AppleMail, Complex HTML with many images', u'Mail 1']
+
 
 
 Appending messages to folders
@@ -224,7 +308,7 @@ To delete a message from a folder, you delete it using the `del` operator:
 >>> del INBOX.messages[INBOX.messages.keys()[-1]]
 >>> len(INBOX.messages) - before
 -1
->>> message = INBOX.messages.values()[-2]
+>>> message = INBOX.messages.values()[-4]
 >>> print message.raw[:10000]
 Date: Tue, 11 Aug 2009 16:29:50 +0200
 From: Thomas Lotze <tl@gocept.com>
