@@ -95,7 +95,8 @@ class IMessageContainer(zope.interface.Interface):
         title=u'The messages of this folder.',
         schema=IMessages)
 
-    def filtered_messages(sort_by, sort_dir='asc', i=0, j=None):
+    def filtered_messages(
+        sort_by=None, sort_dir='asc', filter_by=None, filter_value=None):
         """Return a partial sequence of all messages that pass the filter."""
 
 
