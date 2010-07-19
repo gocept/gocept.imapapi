@@ -434,7 +434,6 @@ class Messages(UserDict.DictMixin):
         if self.container._message_count_cache is not None:
             self.container._message_count_cache -= len(keys)
 
-
     def add(self, message):
         # XXX This method should not access the message count cache of its
         # container directly. Ideally, it should not even have to care about
@@ -448,33 +447,63 @@ class Messages(UserDict.DictMixin):
         if self.container._message_count_cache is not None:
             self.container._message_count_cache += 1
 
-    def filtered(self, sort_by, sort_dir='asc'):
+    def filtered(self, sort_by=None, sort_dir='asc',
+                 filter_by=None, filter_value=None):
         # XXX make API for sort_by not IMAP-syntax specific.
-        sort_criterion = sort_by.upper()
+        sort_criterion = (sort_by or 'ARRIVAL').upper()
         self.container._select()
         if sort_criterion == 'FROM_NAME':
-            uids = self._filtered_by_header('FROM', self.from_name, sort_dir)
-        elif not sort_criterion:
-            uids = [gocept.imapapi.parser.fetch(line)['UID']
-                    for line in self._fetch_lines('%s:%s' % (1, len(self)),
-                                                    '(UID)')]
+            # we want to sort by *name* and address, but since IMAP SORT only
+            # support sorting by address, we need to roll our own.
+            uids = self._filtered_by_header(
+                'FROM', self.from_name, sort_dir, filter_by, filter_value)
         else:
-            uids = self._filtered_by_imap(sort_criterion, sort_dir)
+            uids = self._filtered_by_imap(
+                sort_criterion, sort_dir, filter_by, filter_value)
         uids = [self._key(uid) for uid in uids]
         return LazyMessageSequence(uids, self)
 
-    def _filtered_by_imap(self, sort_criterion, sort_dir):
+    def _filtered_by_imap(self, sort_criterion, sort_dir,
+                          filter_by, filter_value):
         if sort_dir == 'desc':
             sort_criterion = 'REVERSE ' + sort_criterion
         code, data = self.container.server.uid(
-            'SORT', '(%s)' % sort_criterion, 'UTF-8', 'ALL')
+            'SORT', '(%s)' % sort_criterion, 'UTF-8',
+            *self._search_criteria(filter_by, filter_value))
         assert code == 'OK'
         uids = gocept.imapapi.parser.search(data)
         return uids
 
-    def _filtered_by_header(self, field, key, sort_dir):
+    def _search_criteria(self, filter_by, filter_value):
+        if filter_by is None or not filter_value:
+            return ('ALL',)
+
+        filter_value = filter_value.replace('\\', '\\\\')
+        filter_value = filter_value.replace('"', '\\"')
+        filter_value = filter_value.encode('utf-8')
+
+        if filter_by is gocept.imapapi.interfaces.FILTER_SUBJECT:
+            return ('SUBJECT', '"%s"' % filter_value)
+        elif filter_by is gocept.imapapi.interfaces.FILTER_SENDER:
+            return ('HEADER', 'FROM', '"%s"' % filter_value)
+        elif filter_by is gocept.imapapi.interfaces.FILTER_SUBJECT_OR_SENDER:
+            return ('OR',
+                    'SUBJECT', '"%s"' % filter_value,
+                    'HEADER', 'FROM', '"%s"' % filter_value)
+        elif filter_by is gocept.imapapi.interfaces.FILTER_TO_OR_CC:
+            return ('OR',
+                    'HEADER', 'TO', '"%s"' % filter_value,
+                    'HEADER', 'CC', '"%s"' % filter_value)
+        else:
+            raise ValueError('Invalid search criterion %r' % filter_by)
+
+    def _filtered_by_header(self, field, key, sort_dir,
+                            filter_by, filter_value):
+        uids = self._filtered_by_imap(
+            'ARRIVAL', 'asc', filter_by, filter_value)
+        uids = ','.join(str(uid) for uid in uids)
         code, data = self.container.server.uid(
-            'FETCH', '1:*', '(BODY[HEADER.FIELDS (%s)])' % field)
+            'FETCH', uids, '(BODY[HEADER.FIELDS (%s)])' % field)
         assert code == 'OK'
         items = gocept.imapapi.parser.fetch(data, fetch_all=True)
         for item in items:
@@ -519,11 +548,14 @@ class LazyMessageSequence(object):
 
     def __getslice__(self, i, j):
         messages = self.messages.by_uids(self.uids[i:j])
-        messages.sort(key=lambda x:self.uids.index(x.name))
+        messages.sort(key=lambda x: self.uids.index(x.name))
         return messages
 
     def __getitem__(self, i):
         return self.messages[self.uids[i]]
+
+    def __len__(self):
+        return len(self.uids)
 
 
 def update(func):
