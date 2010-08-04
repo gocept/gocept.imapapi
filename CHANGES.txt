@@ -3,7 +3,13 @@ CHANGES
 =======
 
 
-0.2 (unreleased)
+0.3 (unreleased)
+================
+
+- nothing changed yet.
+
+
+0.2 (2010-08-04)
 ================
 
 - Lots of changes (see svn log for details).
