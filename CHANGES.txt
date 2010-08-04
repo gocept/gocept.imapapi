@@ -1,0 +1,15 @@
+=======
+CHANGES
+=======
+
+
+0.2 (unreleased)
+================
+
+- Lots of changes (see svn log for details).
+
+
+0.1 (2008-07-22)
+================
+
+- initial release.
