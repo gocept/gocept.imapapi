@@ -3,13 +3,13 @@
 # See also LICENSE.txt
 """Test harness for gocept.imapapi."""
 
+import doctest
 import imaplib
 import os
 import os.path
 import re
 import time
 import unittest
-from zope.testing import doctest
 import zope.testing.renormalizing
 
 import imaplib
@@ -18,6 +18,7 @@ import gocept.imapapi.parser
 
 checker = zope.testing.renormalizing.RENormalizing([
     (re.compile('0x[0-9a-f]+'), "<MEM ADDRESS>")])
+
 
 def callIMAP(server, function, *args, **kw):
     status, data = getattr(server, function)(*args, **kw)
