@@ -6,7 +6,7 @@ CHANGES
 0.3 (unreleased)
 ================
 
-- nothing changed yet.
+- Filter messages on the IMAP server. (#4699)
 
 
 0.2 (2010-08-04)
