@@ -1,23 +1,15 @@
-# vim:fileencoding=utf-8
-# Copyright (c) 2008 gocept gmbh & co. kg
+# Copyright (c) 2008-2010 gocept gmbh & co. kg
 # See also LICENSE.txt
 """Test harness for gocept.imapapi."""
 
-import doctest
 import imaplib
 import os
 import os.path
-import re
 import time
-import unittest
-import zope.testing.renormalizing
 
 import imaplib
 import gocept.imapapi
 import gocept.imapapi.parser
-
-checker = zope.testing.renormalizing.RENormalizing([
-    (re.compile('0x[0-9a-f]+'), "<MEM ADDRESS>")])
 
 
 def callIMAP(server, function, *args, **kw):
@@ -73,7 +65,7 @@ def setup_account(server):
     clear_inbox(server)
 
 
-def setUp(self):
+def setUp(test):
     server = imaplib.IMAP4('localhost', 10143)
     server.login('test', 'bsdf')
 
@@ -93,26 +85,3 @@ def setUp(self):
     server = imaplib.IMAP4('localhost', 10143)
     server.login('test2', 'csdf')
     setup_account(server)
-
-
-optionflags = (doctest.NORMALIZE_WHITESPACE | doctest.ELLIPSIS |
-               doctest.REPORT_NDIFF)
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(doctest.DocFileSuite(
-        'imap.txt',
-        'account.txt',
-        'folder.txt',
-        'message.txt',
-        'optimizations.txt',
-        setUp=setUp,
-        optionflags=optionflags,
-        checker=checker))
-    suite.addTest(doctest.DocTestSuite(
-        'gocept.imapapi.parser',
-        optionflags=optionflags))
-    suite.addTest(doctest.DocTestSuite(
-        'gocept.imapapi.folder',
-        optionflags=optionflags))
-    return suite
