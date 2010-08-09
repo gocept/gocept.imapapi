@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gocept.imapapi',
-    version='0.3',
+    version='0.4dev',
     author='gocept gmbh & co. kg',
     author_email='mail@gocept.com',
     description='Object-oriented API for accessing IMAP accounts.',
