@@ -3,7 +3,7 @@ CHANGES
 =======
 
 
-0.3 (unreleased)
+0.3 (2010-08-09)
 ================
 
 - Filter messages on the IMAP server. (#4699)
