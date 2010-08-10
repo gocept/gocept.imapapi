@@ -2,14 +2,14 @@
 # See also LICENSE.txt
 """Test harness for gocept.imapapi."""
 
+import gocept.imapapi
+import gocept.imapapi.parser
+import imaplib
 import imaplib
 import os
 import os.path
 import time
-
-import imaplib
-import gocept.imapapi
-import gocept.imapapi.parser
+import unittest
 
 
 def callIMAP(server, function, *args, **kw):
@@ -85,3 +85,11 @@ def setUp(test):
     server = imaplib.IMAP4('localhost', 10143)
     server.login('test2', 'csdf')
     setup_account(server)
+
+
+class TestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.server = imaplib.IMAP4('localhost', 10143)
+        self.server.login('test', 'bsdf')
+        setup_account(self.server)
