@@ -66,6 +66,7 @@ FILTER_SUBJECT = object()
 FILTER_SENDER = object()
 FILTER_SUBJECT_OR_SENDER = object()
 FILTER_TO_OR_CC = object()
+FILTER_SEEN = object()
 
 
 class IMessages(zope.interface.common.mapping.IMapping):
