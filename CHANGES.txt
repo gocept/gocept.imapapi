@@ -6,7 +6,7 @@ CHANGES
 0.4 (unreleased)
 ================
 
-- Nothing changed yet.
+- Add filter criterion "seen" (#7263).
 
 
 0.3 (2010-08-09)
