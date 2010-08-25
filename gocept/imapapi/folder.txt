@@ -262,11 +262,36 @@ Filtering
 >>> [m.headers['Subject'] for m in messages]
 [u'" DELETE * FROM mailbox']
 
+An empty filter_value retrieves all messages:
+
 >>> messages = INBOX.messages.filtered(
 ...     filter_by=gocept.imapapi.interfaces.FILTER_TO_OR_CC,
 ...     filter_value='')
 >>> len(messages)
 8
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_TO_OR_CC,
+...     filter_value=None)
+>>> len(messages)
+8
+
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SEEN,
+...     filter_value=True)
+>>> len(messages)
+8
+>>> messages[0].flags.remove(r'\Seen')
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SEEN,
+...     filter_value=True)
+>>> len(messages)
+7
+>>> messages = INBOX.messages.filtered(
+...     filter_by=gocept.imapapi.interfaces.FILTER_SEEN,
+...     filter_value=False)
+>>> len(messages)
+1
+
 
 Filtering and sorting combined
 ==============================
