@@ -475,12 +475,13 @@ class Messages(UserDict.DictMixin):
         return uids
 
     def _search_criteria(self, filter_by, filter_value):
-        if filter_by is None or not filter_value:
+        if filter_by is None or filter_value is None or filter_value == '':
             return ('ALL',)
 
-        filter_value = filter_value.replace('\\', '\\\\')
-        filter_value = filter_value.replace('"', '\\"')
-        filter_value = filter_value.encode('utf-8')
+        if isinstance(filter_value, (str, unicode)):
+            filter_value = filter_value.replace('\\', '\\\\')
+            filter_value = filter_value.replace('"', '\\"')
+            filter_value = filter_value.encode('utf-8')
 
         if filter_by is gocept.imapapi.interfaces.FILTER_SUBJECT:
             return ('SUBJECT', '"%s"' % filter_value)
@@ -494,6 +495,8 @@ class Messages(UserDict.DictMixin):
             return ('OR',
                     'HEADER', 'TO', '"%s"' % filter_value,
                     'HEADER', 'CC', '"%s"' % filter_value)
+        elif filter_by is gocept.imapapi.interfaces.FILTER_SEEN:
+            return filter_value and ('SEEN',) or ('UNSEEN',)
         else:
             raise ValueError('Invalid search criterion %r' % filter_by)
 
