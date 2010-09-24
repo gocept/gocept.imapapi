@@ -3,7 +3,7 @@ CHANGES
 =======
 
 
-0.4 (unreleased)
+0.4 (2010-09-24)
 ================
 
 - Add filter criterion "seen" (#7263).
