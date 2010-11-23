@@ -25,6 +25,14 @@ def clear_inbox(server):
     callIMAP(server, 'expunge')
 
 
+def load_message_from_file(server, folder_name, filepath):
+    timestamp = os.path.getmtime(filepath)
+    localtime = time.localtime(timestamp)
+    date = time.strftime('"%d-%b-%Y %H:%M:%S +0200"', localtime)
+    message = open(filepath).read()
+    callIMAP(server, 'append', folder_name, '', date, message)
+
+
 def load_messages(package, path, server, folder_name):
     # Clean up the test folder from previous runs. We do not delete at the
     # end of a run to preserve data for debugging purposes.
@@ -39,13 +47,8 @@ def load_messages(package, path, server, folder_name):
     for filename in sorted(os.listdir(path)):
         if filename.startswith('.') or filename.endswith('~'):
             continue
-        filepath = os.path.join(path, filename)
-        timestamp = os.path.getmtime(filepath)
-        localtime = time.localtime(timestamp)
-        date = time.strftime('"%d-%b-%Y %H:%M:%S +0200"', localtime)
-        message = open(filepath).read()
-        callIMAP(server, 'append', folder_name, '', date, message)
-
+        load_message_from_file(
+            server, folder_name, os.path.join(path, filename))
 
 def setup_account(server):
     # Clean up the test account from previous runs. We do not delete at the
