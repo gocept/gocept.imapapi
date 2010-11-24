@@ -8,7 +8,6 @@ import imaplib
 import imaplib
 import os
 import os.path
-import time
 import unittest
 
 
@@ -26,9 +25,7 @@ def clear_inbox(server):
 
 
 def load_message_from_file(server, folder_name, filepath):
-    timestamp = os.path.getmtime(filepath)
-    localtime = time.localtime(timestamp)
-    date = time.strftime('"%d-%b-%Y %H:%M:%S +0200"', localtime)
+    date = '"01-Jan-1970 00:00:00 +0000"'
     message = open(filepath).read()
     callIMAP(server, 'append', folder_name, '', date, message)
 
@@ -49,6 +46,7 @@ def load_messages(package, path, server, folder_name):
             continue
         load_message_from_file(
             server, folder_name, os.path.join(path, filename))
+
 
 def setup_account(server):
     # Clean up the test account from previous runs. We do not delete at the
