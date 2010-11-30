@@ -3,8 +3,8 @@ CHANGES
 =======
 
 
-0.5 (unreleased)
-================
+0.4.1 (2010-11-30)
+==================
 
 - Made the test infrastructure load test messages in a more stable order.
 
