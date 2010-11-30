@@ -6,7 +6,7 @@ CHANGES
 0.5 (unreleased)
 ================
 
-- Nothing changed yet.
+- Made the test infrastructure load test messages in a more stable order.
 
 
 0.4 (2010-09-24)
