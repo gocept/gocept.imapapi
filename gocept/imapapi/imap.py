@@ -9,14 +9,18 @@ import logging
 logger = logging.getLogger('gocept.imapapi.imap')
 
 
-def callable_proxy(name, callable):
+def callable_proxy(server, name, callable):
     def proxy(*args, **kw):
         log_args = args
         if name.startswith('login'):
             user, password = args
             log_args = (user, '****')
-        logger.debug('%s(%s, %s)' % (name, log_args, kw))
-        return callable(*args, **kw)
+        logger.debug('%s: %s(%s, %s)' % (server, name, log_args, kw))
+        try:
+            return callable(*args, **kw)
+        except:
+            logger.debug('Error in %s' % name, exc_info=True)
+            raise
     return proxy
 
 
@@ -38,7 +42,7 @@ class IMAPConnection(object):
     def __getattr__(self, name):
         attr = getattr(self.server, name)
         if callable(attr):
-            attr = callable_proxy(name, attr)
+            attr = callable_proxy(self, name, attr)
         return attr
 
     @property
@@ -48,7 +52,7 @@ class IMAPConnection(object):
         return self._selected_path
 
     def select(self, path):
-        select = callable_proxy('select', self.server.select)
+        select = callable_proxy(self, 'select', self.server.select)
         code, data = select(path)
         if code == 'OK':
             self._selected_path = path
