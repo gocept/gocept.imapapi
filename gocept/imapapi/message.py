@@ -640,7 +640,8 @@ def _fetch(server, mailbox, msg_uid, data_item, chunk_no=None):
     data_item_req = '(%s)' % data_item_req
     code, data = server.uid('FETCH', msg_uid, data_item_req)
     assert code == 'OK'
-    __traceback_info__ = 'Server response to FETCH uid %s: %s, %r' % (data_item_req, code, data)
+    __traceback_info__ = 'Server %s:%s, response to FETCH %s %s: %s, %r' % (
+        server.host, server.port, msg_uid, data_item_req, code, data)
     data = gocept.imapapi.parser.fetch(data)
     return data[data_item_resp]
 
