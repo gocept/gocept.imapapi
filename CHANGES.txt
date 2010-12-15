@@ -6,7 +6,7 @@ CHANGES
 0.5 (unreleased)
 ================
 
-- Added some debug output to help with #6830.
+- Added some debug output to help with #6830 and #7769.
 
 
 0.4.1 (2010-11-30)
