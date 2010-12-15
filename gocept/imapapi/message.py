@@ -370,6 +370,11 @@ class Messages(UserDict.DictMixin):
 
     def _make_message(self, line):
         data = gocept.imapapi.parser.fetch(line)
+
+        # XXX debug #6830
+        import pprint
+        __traceback_info__ = pprint.pformat(data)
+
         return Message(
             self._key(data['UID']), self.container, data['ENVELOPE'],
             data['FLAGS'])
