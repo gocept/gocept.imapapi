@@ -9,13 +9,14 @@ import logging
 logger = logging.getLogger('gocept.imapapi.imap')
 
 
-def callable_proxy(server, name, callable):
+def callable_proxy(conn, name, callable):
     def proxy(*args, **kw):
         log_args = args
         if name.startswith('login'):
             user, password = args
             log_args = (user, '****')
-        logger.debug('%s: %s(%s, %s)' % (server, name, log_args, kw))
+        logger.debug('%s:%s: %s(%s, %s)' % (
+                conn.server.host, conn.server.port, name, log_args, kw))
         try:
             return callable(*args, **kw)
         except:

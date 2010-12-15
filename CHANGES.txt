@@ -8,6 +8,8 @@ CHANGES
 
 - Added some debug output to help with #6830 and #7769.
 
+- Made some recently introduced logging more useful, adapted tests.
+
 
 0.4.1 (2010-11-30)
 ==================
