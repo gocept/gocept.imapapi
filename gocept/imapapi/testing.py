@@ -5,7 +5,7 @@
 import gocept.imapapi
 import gocept.imapapi.parser
 import imaplib
-import imaplib
+import itertools
 import os
 import os.path
 import unittest
@@ -24,8 +24,17 @@ def clear_inbox(server):
     callIMAP(server, 'expunge')
 
 
+# Ensure that test messages get unique, increasing timestamps, so their
+# ordering on the server is consistent with the order in which they were
+# appended. Since these timestamps are not seen by clients (they see the Date:
+# header), it's okay for the counter to be global and shared between tests.
+message_timestamp = itertools.count()
+# dovecot does not seem to accept 0 as the smallest possible value
+message_timestamp.next()
+
+
 def load_message_from_file(server, folder_name, filepath):
-    date = '"01-Jan-1970 00:00:00 +0000"'
+    date = message_timestamp.next()
     message = open(filepath).read()
     callIMAP(server, 'append', folder_name, '', date, message)
 
