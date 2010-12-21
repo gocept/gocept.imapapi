@@ -6,6 +6,8 @@ CHANGES
 0.5 (unreleased)
 ================
 
+- Added Folder.unread_message_count.
+
 - Added some debug output to help with #6830 and #7769.
 
 - Made some recently introduced logging more useful, adapted tests.
@@ -20,7 +22,7 @@ CHANGES
 0.4 (2010-09-24)
 ================
 
-- Add filter criterion "seen" (#7263).
+- Added filter criterion "seen" (#7263).
 
 
 0.3 (2010-08-09)
