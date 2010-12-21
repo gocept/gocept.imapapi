@@ -114,6 +114,13 @@ which provides a dictionary-like API:
 
 >>> INBOX.messages
 <8 messages of <gocept.imapapi.folder.Folder object u'INBOX' at 0xb78b3cac>>
+>>> INBOX.message_count
+8
+>>> INBOX.unread_message_count
+8
+>>> INBOX.messages.values()[0].flags.add(r'\Seen')
+>>> INBOX.unread_message_count
+7
 
 >>> pprint(dict(INBOX.messages))
 {'...-...': <gocept.imapapi.message.Message object u'INBOX/...-...' at 0x2162537>,

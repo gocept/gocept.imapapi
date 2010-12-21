@@ -123,6 +123,14 @@ class Folder(object):
                 gocept.imapapi.parser.status(data[0])['MESSAGES'])
         return self._message_count_cache
 
+    @property
+    def unread_message_count(self):
+        # XXX RFC3501 says you SHOULD NOT do STATUS on the currently selected
+        # mailbox since it might be slow, see #8449.
+        code, data = self.server.status(self.encoded_path, "(UNSEEN)")
+        assert code == 'OK', '%s %r' % (code, data)
+        return gocept.imapapi.parser.status(data[0])['UNSEEN']
+
     def _select(self):
         """Selects the folder as the current folder of the connection.
 
