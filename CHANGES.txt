@@ -3,7 +3,7 @@ CHANGES
 =======
 
 
-0.5 (unreleased)
+0.5 (2011-01-31)
 ================
 
 - Added Folder.unread_message_count.
