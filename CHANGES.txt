@@ -6,7 +6,7 @@ CHANGES
 0.6 (unreleased)
 ================
 
-- Nothing changed yet.
+- Migrate repository to Bitbucket.
 
 
 0.5 (2011-01-31)
